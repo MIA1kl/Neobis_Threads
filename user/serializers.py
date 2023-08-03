@@ -1,7 +1,7 @@
 from rest_framework import serializers
-
+from django.contrib.auth import authenticate
 from .models import CustomUser
-
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -45,3 +45,26 @@ class CustomUserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+
+        user = authenticate(email=email, password=password)
+        if not user or not user.is_active:
+            raise serializers.ValidationError('Invalid email or password.')
+
+        refresh = RefreshToken.for_user(user)
+        data['tokens'] = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
+        return data
+
+
+
