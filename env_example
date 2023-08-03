@@ -6,3 +6,5 @@ DB_USER=db_user
 DB_PASSWORD=db_password
 DB_HOST=localhost
 DB_PORT=5432
+EMAIL_HOST_USER=email_app_username
+EMAIL_HOST_PASSWORD=email_app_password
