@@ -29,6 +29,7 @@ DEBUG = config('DEBUG', cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(' ')
 
+AUTH_USER_MODEL = 'user.CustomUser'
 
 # Application definition
 
@@ -39,6 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Installed & Created
+    'rest_framework',
+    'user',
+
 ]
 
 MIDDLEWARE = [
