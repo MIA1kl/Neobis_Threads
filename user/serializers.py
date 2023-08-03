@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser
+from .models import CustomUser, OTP
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 
@@ -65,6 +65,43 @@ class UserLoginSerializer(serializers.Serializer):
             'access': str(refresh.access_token)
         }
         return data
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = CustomUser.objects.get(email=value)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        return value
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=6)
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate_otp(self, value):
+        try:
+            otp_obj = OTP.objects.get(otp=value)
+            if otp_obj.is_expired:
+                raise serializers.ValidationError("OTP has expired.")
+            self.user = otp_obj.user
+        except OTP.DoesNotExist:
+            raise serializers.ValidationError("Invalid OTP.")
+        return value
+
+    def validate(self, data):
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if password != confirm_password:
+            raise serializers.ValidationError('Passwords do not match!')
+
+        return data
+
 
 
 
