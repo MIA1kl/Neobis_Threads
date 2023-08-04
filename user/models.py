@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser, BaseUserManager
-
-
+from rest_framework_simplejwt.tokens import RefreshToken
+import random
+import string
+from django.utils import timezone
 
 class UserManager(BaseUserManager):
     def create_user(self, email, name, password=None):
@@ -35,9 +37,25 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
 
     def __str__(self):
         return self.email
+    
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
 
+class OTP(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    @staticmethod
+    def generate_otp():
+        digits = string.digits
+        return ''.join(random.choice(digits) for i in range(6))
 
-
-
-
+    @property
+    def is_expired(self):
+        time_threshold = timezone.now() - timezone.timedelta(minutes=5)
+        return self.created_at < time_threshold
