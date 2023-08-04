@@ -3,11 +3,19 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from .models import CustomUser, OTP
-from .serializers import CustomUserSerializer, UserLoginSerializer, ResetPasswordSerializer, ForgotPasswordSerializer
+from .serializers import (
+    CustomUserSerializer,
+    UserLoginSerializer,
+    ResetPasswordSerializer,
+    ForgotPasswordSerializer,
+    UserProfileSerializer,
+    UserProfileUpdateSerializer
+)
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import OTP
-from .serializers import ForgotPasswordSerializer
+from rest_framework.permissions import IsAuthenticated
+
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -75,3 +83,24 @@ class ResetPasswordView(generics.GenericAPIView):
             return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileDetailView(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        user.is_private = user.is_private
+        return user
+
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+        user.is_private = user.is_private
+        return user
