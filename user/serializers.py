@@ -115,14 +115,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'name', 'username', 'profile_picture',  'bio', 'location', 'link', 'is_private')
+        fields = ('id', 'email', 'name', 'username', 'profile_picture',  'bio', 'link', 'is_private')
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     is_private = serializers.BooleanField()
+
     class Meta:
         model = CustomUser
-        fields = ('username', 'bio', 'profile_picture', 'location', 'link', 'is_private')
+        fields = ('name', 'username', 'bio', 'profile_picture', 'link', 'is_private')
 
 
 

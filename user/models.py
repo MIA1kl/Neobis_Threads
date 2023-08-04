@@ -33,11 +33,11 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     username = models.CharField(max_length=50, unique=True)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
-    location = models.CharField(max_length=100, blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     is_private = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
 
     def is_profile_private(self):
         return self.is_private
