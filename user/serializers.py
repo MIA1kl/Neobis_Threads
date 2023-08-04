@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser, OTP
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from datetime import timedelta
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -50,6 +51,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
+    remember_me = serializers.BooleanField(default=False)
 
     def validate(self, data):
         email = data.get('email')
@@ -60,11 +62,16 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid email or password.')
 
         refresh = RefreshToken.for_user(user)
+
+        if data.get('remember_me'):
+            refresh.access_token.set_exp(lifetime=timedelta(days=7))
+
         data['tokens'] = {
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
         return data
+
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()

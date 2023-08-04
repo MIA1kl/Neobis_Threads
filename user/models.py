@@ -5,6 +5,7 @@ import random
 import string
 from django.utils import timezone
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, name, password=None):
         if not email:
@@ -44,6 +45,7 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
+
 
 class OTP(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

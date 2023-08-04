@@ -9,6 +9,7 @@ from django.conf import settings
 from .models import OTP
 from .serializers import ForgotPasswordSerializer
 
+
 class UserRegistrationView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
@@ -19,7 +20,8 @@ class UserRegistrationView(generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer 
 
