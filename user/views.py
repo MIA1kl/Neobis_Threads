@@ -9,7 +9,8 @@ from .serializers import (
     ResetPasswordSerializer,
     ForgotPasswordSerializer,
     UserProfileSerializer,
-    UserProfileUpdateSerializer
+    UserProfileUpdateSerializer,
+    OTPVerificationSerializer
 )
 from django.core.mail import send_mail
 from django.conf import settings
@@ -68,6 +69,18 @@ class ForgotPasswordView(generics.GenericAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class VerifyOTPView(generics.GenericAPIView):
+    serializer_class = OTPVerificationSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.user
+            OTP.objects.filter(user=user).delete()
+            return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     
 class ResetPasswordView(generics.GenericAPIView):
     serializer_class = ResetPasswordSerializer
@@ -75,11 +88,10 @@ class ResetPasswordView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.user
+            user = serializer.validated_data['user']  
             password = serializer.validated_data['password']
             user.set_password(password)
             user.save()
-            OTP.objects.filter(user=user).delete()
             return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -5,7 +5,8 @@ from .views import (
     ForgotPasswordView,
     ResetPasswordView,
     UserProfileDetailView,
-    UserProfileUpdateView
+    UserProfileUpdateView,
+    VerifyOTPView
 )
 
 
@@ -16,6 +17,7 @@ urlpatterns = [
     path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
     path('profile/', UserProfileDetailView.as_view(), name='user-profile'),
     path('profile/update/', UserProfileUpdateView.as_view(), name='update-user-profile'),
+    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),  # New OTP verification endpoint
 
 ]
 

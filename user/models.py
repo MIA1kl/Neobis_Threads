@@ -61,13 +61,13 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
 
 class OTP(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    otp = models.CharField(max_length=6)
+    otp = models.CharField(max_length=4)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
     def generate_otp():
         digits = string.digits
-        return ''.join(random.choice(digits) for i in range(6))
+        return ''.join(random.choice(digits) for i in range(4))
 
     @property
     def is_expired(self):

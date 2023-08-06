@@ -4,6 +4,22 @@ from .models import CustomUser, OTP
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
 
+def validate_password(value):
+    min_length = 8
+    if len(value) < min_length:
+        raise serializers.ValidationError(f'Password must be at least {min_length} characters long.')
+
+    if not any(char.isdigit() for char in value):
+        raise serializers.ValidationError('Password must contain at least one digit.')
+
+    if not any(char.isalpha() for char in value):
+        raise serializers.ValidationError('Password must contain at least one letter.')
+
+    if not any(char.isupper() for char in value):
+        raise serializers.ValidationError('Password must contain at least one uppercase letter.')
+
+    return value
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
@@ -14,20 +30,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_password(self, value):
-        min_length = 8
-        if len(value) < min_length:
-            raise serializers.ValidationError(f'Password must be at least {min_length} characters long.')
+        return validate_password(value)
 
-        if not any(char.isdigit() for char in value):
-            raise serializers.ValidationError('Password must contain at least one digit.')
-
-        if not any(char.isalpha() for char in value):
-            raise serializers.ValidationError('Password must contain at least one letter.')
-
-        if not any(char.isupper() for char in value):
-            raise serializers.ValidationError('Password must contain at least one uppercase letter.')
-
-        return value
 
     def validate(self, data):
         password = data.get('password')
@@ -75,7 +79,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
-
+    
     def validate_email(self, value):
         try:
             user = CustomUser.objects.get(email=value)
@@ -84,12 +88,8 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
         return value
 
-
-class ResetPasswordSerializer(serializers.Serializer):
-    otp = serializers.CharField(max_length=6)
-    password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
-
+class OTPVerificationSerializer(serializers.Serializer):
+    otp = serializers.CharField(max_length=4)
     def validate_otp(self, value):
         try:
             otp_obj = OTP.objects.get(otp=value)
@@ -100,14 +100,37 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid OTP.")
         return value
 
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
     def validate(self, data):
+        email = data.get('email')
         password = data.get('password')
         confirm_password = data.get('confirm_password')
 
         if password != confirm_password:
             raise serializers.ValidationError('Passwords do not match!')
 
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("User with this email does not exist.")
+
+        data['user'] = user
         return data
+
+    def validate_password(self, value):
+        return validate_password(value)
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        password = validated_data['password']
+        user.set_password(password)
+        user.save()
+        return user
+
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
