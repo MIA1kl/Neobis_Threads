@@ -16,6 +16,13 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import OTP
 from rest_framework.permissions import IsAuthenticated
+from allauth.socialaccount.models import SocialAccount
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from django.utils import timezone
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+
+
 
 
 
@@ -32,14 +39,33 @@ class UserRegistrationView(generics.CreateAPIView):
 
 
 class UserLoginView(generics.GenericAPIView):
-    serializer_class = UserLoginSerializer 
+    serializer_class = UserLoginSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            response_data = serializer.validated_data
-            return Response(response_data['tokens'], status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        remember_me = serializer.validated_data.get('remember_me', False)
+
+        user = authenticate(email=email, password=password)
+        if not user or not user.is_active:
+            raise serializers.ValidationError('Invalid email or password.')
+
+        refresh = RefreshToken.for_user(user)
+
+        if not SocialAccount.objects.filter(user=user).exists():
+            if remember_me:
+                refresh.access_token.set_exp(lifetime=timedelta(days=7))
+        else:
+            if remember_me:
+                refresh.access_token.set_exp(lifetime=timedelta(days=7))
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }, status=status.HTTP_200_OK)
 
 
 class ForgotPasswordView(generics.GenericAPIView):
