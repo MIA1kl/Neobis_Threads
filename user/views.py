@@ -68,6 +68,22 @@ class UserLoginView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }, status=status.HTTP_200_OK)
+        
+class UserLogoutView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh_token')
+        
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
+            except TokenError:
+                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"detail": "Refresh token is required for logout."}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ForgotPasswordView(generics.GenericAPIView):
