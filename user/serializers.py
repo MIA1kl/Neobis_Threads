@@ -4,10 +4,15 @@ from .models import CustomUser, OTP
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
 
+
 def validate_password(value):
-    min_length = 8
+    min_length = 6
+    max_lenght = 14
     if len(value) < min_length:
         raise serializers.ValidationError(f'Password must be at least {min_length} characters long.')
+
+    if len(value) > max_lenght:
+        raise serializers.ValidationError(f'Password must be at more {max_lenght} characters long.')
 
     if not any(char.isdigit() for char in value):
         raise serializers.ValidationError('Password must contain at least one digit.')
@@ -17,6 +22,9 @@ def validate_password(value):
 
     if not any(char.isupper() for char in value):
         raise serializers.ValidationError('Password must contain at least one uppercase letter.')
+
+    if not any(not char.isalnum() for char in value):
+        raise serializers.ValidationError('Password must contain at least one special character.')
 
     return value
 
