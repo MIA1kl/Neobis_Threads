@@ -38,4 +38,18 @@ class ThreadLikeView(APIView):
         thread_serializer = ThreadSerializer(thread)
         return Response(thread_serializer.data)
 
+class ThreadDeleteView(generics.DestroyAPIView):
+    queryset = Thread.objects.all()
+    serializer_class = ThreadSerializer
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        thread = self.get_object()
+
+        if thread.author != request.user:
+            return Response({"detail": "You do not have permission to delete this thread."},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        thread.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
