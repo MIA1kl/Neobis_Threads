@@ -1,14 +1,15 @@
-from thread.models import Thread
+from thread.models import Thread, Like
 from rest_framework import serializers
 
 
 class ThreadSerializer(serializers.ModelSerializer):
     thread_picture = serializers.ImageField(required=False)
-    likes_count = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'likes_count']
+        fields = ['id', 'content', 'thread_picture', 'likes']
 
-    def get_likes_count(self, instance):
-        return instance.likes.count()
+    def get_likes(self, thread):
+        return Like.objects.filter(thread=thread).count()
+

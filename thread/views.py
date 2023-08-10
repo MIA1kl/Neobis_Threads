@@ -1,15 +1,16 @@
 from rest_framework import status, generics
 from rest_framework.response import Response
-from .models import Thread
+from .models import Thread, Like
 from .serializers import ThreadSerializer
 from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser
+from rest_framework.views import APIView
 
 
 class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated]
 
 
 class ThreadCreateView(generics.CreateAPIView):
@@ -20,20 +21,21 @@ class ThreadCreateView(generics.CreateAPIView):
         serializer.save(author=self.request.user)
 
 
-class ThreadLikeView(generics.UpdateAPIView):
-    queryset = Thread.objects.all()
-    serializer_class = ThreadSerializer
+class ThreadLikeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def update(self, request, *args, **kwargs):
-        thread = self.get_object()
-        user = request.user
+    def post(self, request, thread_id, *args, **kwargs):
+        try:
+            thread = Thread.objects.get(pk=thread_id)
+        except Thread.DoesNotExist:
+            return Response({"detail": "Thread not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if user in thread.likes.all():
-            thread.likes.remove(user)
-        else:
-            thread.likes.add(user)
+        like, created = Like.objects.get_or_create(user=request.user, thread=thread)
 
-        thread.likes_count = thread.likes.count()
-        serializer = self.get_serializer(thread)
-        return Response(serializer.data)
+        if not created:
+            like.delete()
+
+        thread_serializer = ThreadSerializer(thread)
+        return Response(thread_serializer.data)
+
+
