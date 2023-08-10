@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.apple',
     'rest_framework',
     'user',
+    'thread',
 
 ]
 
