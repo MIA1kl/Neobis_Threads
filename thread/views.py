@@ -34,5 +34,6 @@ class ThreadLikeView(generics.UpdateAPIView):
         else:
             thread.likes.add(user)
 
+        thread.likes_count = thread.likes.count()
         serializer = self.get_serializer(thread)
         return Response(serializer.data)
