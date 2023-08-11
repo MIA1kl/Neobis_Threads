@@ -34,7 +34,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'name', 'password', 'confirm_password')
+        fields = ('id', 'email', 'username', 'password', 'confirm_password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_password(self, value):
@@ -146,7 +146,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'name', 'username', 'profile_picture',  'bio', 'link', 'is_private')
+        fields = ('id', 'email', 'username', 'name', 'profile_picture',  'bio', 'link', 'is_private')
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
@@ -154,7 +154,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('name', 'username', 'bio', 'profile_picture', 'link', 'is_private')
+        fields = ('username', 'name', 'bio', 'profile_picture', 'link', 'is_private')
 
 
 

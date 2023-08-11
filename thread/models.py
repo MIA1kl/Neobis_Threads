@@ -20,3 +20,21 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ['user', 'thread']
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(CustomUser, related_name='comments', on_delete=models.CASCADE)
+    thread = models.ForeignKey(Thread, related_name='comments', on_delete=models.CASCADE)
+    content = models.TextField()
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    likes = models.PositiveIntegerField(default=0)
+
+
+class CommentLike(models.Model):
+    user = models.ForeignKey(CustomUser, related_name='comment_likes', on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, related_name='comment_likes', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'comment']

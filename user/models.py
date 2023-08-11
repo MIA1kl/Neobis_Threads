@@ -9,18 +9,18 @@ from django.conf import settings
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, password=None):
+    def create_user(self, email, username, password=None):
         if not email:
             raise ValueError('The email should be set!')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, name=name)
+        user = self.model(email=email, username=username)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, name, password=None):
-        user = self.create_user(email, name, password)
+    def create_superuser(self, email, username, password=None):
+        user = self.create_user(email, username, password)
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
@@ -29,8 +29,8 @@ class UserManager(BaseUserManager):
 
 class CustomUser(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
-    name = models.CharField(max_length=100)
-    username = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    username = models.CharField(max_length=50, unique=True)
     bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     link = models.URLField(blank=True, null=True)
@@ -46,7 +46,7 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
