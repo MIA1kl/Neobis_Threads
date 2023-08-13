@@ -25,10 +25,11 @@ class ThreadSerializer(serializers.ModelSerializer):
     thread_picture = serializers.ImageField(required=False)
     likes = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
+    author = serializers.StringRelatedField()
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'likes', 'comments']
+        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
