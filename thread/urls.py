@@ -8,7 +8,8 @@ from .views import (ThreadListView,
                     ThreadWithCommentListView,
                     ThreadQuotationView,
                     ThreadLikedUsersListView,
-                    CommentLikedUsersListView
+                    CommentLikedUsersListView,
+                    ThreadRepostView
                     )
 
 
