@@ -11,9 +11,7 @@ from .serializers import (
     ForgotPasswordSerializer,
     UserProfileSerializer,
     UserProfileUpdateSerializer,
-    OTPVerificationSerializer,
-    UserContactSerializer,
-    UserFollowingSerializer,
+    OTPVerificationSerializer, UserContactSerializer, UserFollowingSerializer
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -72,6 +70,7 @@ class UserLoginView(generics.GenericAPIView):
 
 class UserLogoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = LogoutSerializer  
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh_token')
