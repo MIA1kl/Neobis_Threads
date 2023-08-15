@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import (
     UserRegistrationView,
     UserLoginView,
@@ -7,9 +7,13 @@ from .views import (
     UserProfileDetailView,
     UserProfileUpdateView,
     VerifyOTPView, 
-    UserLogoutView
+    UserLogoutView,
+    UserContactViewSet
 )
+from rest_framework import routers
 
+users_router = routers.DefaultRouter()
+users_router.register(r'followers', UserContactViewSet, basename='followers')
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
@@ -20,6 +24,7 @@ urlpatterns = [
     path('profile/', UserProfileDetailView.as_view(), name='user-profile'),
     path('profile/update/', UserProfileUpdateView.as_view(), name='update-user-profile'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),  # New OTP verification endpoint
+    path('', include(users_router.urls)),
 
 ]
 

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, OTP
+from .models import CustomUser, OTP, FollowingSystem
+from thread.serializers import LikedUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
 
@@ -146,3 +147,26 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('username', 'name', 'bio', 'profile_picture', 'link', 'is_private')
+
+
+class UserContactSerializer(serializers.ModelSerializer):
+    action = serializers.CharField()
+
+    class Meta:
+        model = FollowingSystem
+        fields = [
+            'user_to',
+            'action',
+        ]
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    following = LikedUserSerializer(many=True, read_only=True)
+    followers = LikedUserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'following',
+            'followers',
+        ]

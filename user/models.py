@@ -35,6 +35,12 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     is_private = models.BooleanField(default=False)
+    following = models.ManyToManyField(
+        'self',
+        through='FollowingSystem',
+        related_name='followers',
+        symmetrical=False
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -73,3 +79,15 @@ class OTP(models.Model):
     def is_expired(self):
         time_threshold = timezone.now() - timezone.timedelta(minutes=5)
         return self.created_at < time_threshold
+
+
+class FollowingSystem(models.Model):
+    user_from = models.ForeignKey(CustomUser, related_name='rel_from_set', on_delete=models.CASCADE)
+    user_to = models.ForeignKey(CustomUser, related_name='rel_to_set', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ('-created'),
+
+    def __str__(self):
+        return f'@{self.user_from.username} follows {self.user_to.username}'

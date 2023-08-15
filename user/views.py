@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from rest_framework import generics
+from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -12,18 +12,19 @@ from .serializers import (
     ForgotPasswordSerializer,
     UserProfileSerializer,
     UserProfileUpdateSerializer,
-    OTPVerificationSerializer
+    OTPVerificationSerializer, UserContactSerializer, UserFollowingSerializer
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import OTP
+from .models import OTP, FollowingSystem
 from rest_framework.permissions import IsAuthenticated
 from allauth.socialaccount.models import SocialAccount
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import authenticate
+from rest_framework.generics import get_object_or_404
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -148,3 +149,41 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
 
 class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
+
+
+class UserContactViewSet(viewsets.ViewSet):
+    serializer_class = UserContactSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'username'
+
+    def create(self, request):
+        serializer = UserContactSerializer(data=request.data)
+        if serializer.is_valid():
+            # user being followed
+            to_user = CustomUser.objects.get(id=serializer.data['user_to'])
+
+            # you cant follow yourself lol
+            if self.request.user != to_user:
+                try:
+                    if serializer.data['action'] == 'follow':
+                        FollowingSystem.objects.get_or_create(user_from=self.request.user, user_to=to_user)
+
+                    if serializer.data['action'] == 'unfollow':
+                        FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user).delete()
+
+                    followers_followings = UserFollowingSerializer(self.request.user)
+                    return Response(followers_followings.data)
+
+                except:
+                    return Response({'status': 'error'})
+            else:
+                return Response({'status': 'no need to follow yourself'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # authenticated user can search for any user's public info
+    def retrieve(self, request, username=None):
+        queryset = CustomUser.objects.all()
+        user = get_object_or_404(queryset, username=username)
+        serializer = UserFollowingSerializer(user)
+        return Response(serializer.data)
