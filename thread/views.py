@@ -1,15 +1,27 @@
 from rest_framework import status, generics
 from rest_framework.response import Response
 from .models import Thread, Like, Comment, CommentLike
-from .serializers import ThreadSerializer, CommentSerializer
+from .serializers import (
+    ThreadSerializer,
+    CommentSerializer,
+    LikedUserSerializer,
+    ThreadWithCommentSerializer,
+)
 from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser
 from rest_framework.views import APIView
+from .mixins import LikedUsersListMixin
 
 
 class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ThreadWithCommentListView(generics.ListCreateAPIView):
+    queryset = Thread.objects.all()
+    serializer_class = ThreadWithCommentSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -38,6 +50,7 @@ class ThreadLikeView(APIView):
         thread_serializer = ThreadSerializer(thread)
         return Response(thread_serializer.data)
 
+
 class ThreadDeleteView(generics.DestroyAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
@@ -52,6 +65,7 @@ class ThreadDeleteView(generics.DestroyAPIView):
 
         thread.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ThreadCommentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -99,3 +113,15 @@ class CommentLikeView(APIView):
 
         comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data)
+
+
+class ThreadLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
+    model = Thread
+    lookup_field = 'thread_id'
+    related_field = 'likes'
+
+
+class CommentLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
+    model = Comment
+    lookup_field = 'comment_id'
+    related_field = 'comment_likes'

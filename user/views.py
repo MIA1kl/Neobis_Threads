@@ -14,6 +14,7 @@ from .serializers import (
     UserProfileUpdateSerializer,
     OTPVerificationSerializer
 )
+from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import OTP
@@ -23,9 +24,6 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-
-
-
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -68,13 +66,14 @@ class UserLoginView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }, status=status.HTTP_200_OK)
-        
+
+
 class UserLogoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh_token')
-        
+
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
@@ -112,7 +111,8 @@ class ForgotPasswordView(generics.GenericAPIView):
             return Response({"message": "OTP sent to your email."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 class VerifyOTPView(generics.GenericAPIView):
     serializer_class = OTPVerificationSerializer
 
@@ -124,15 +124,15 @@ class VerifyOTPView(generics.GenericAPIView):
             return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    
+
+
 class ResetPasswordView(generics.GenericAPIView):
     serializer_class = ResetPasswordSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data['user']  
+            user = serializer.validated_data['user']
             password = serializer.validated_data['password']
             user.set_password(password)
             user.save()
@@ -141,22 +141,10 @@ class ResetPasswordView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserProfileDetailView(generics.RetrieveAPIView):
+class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        user = self.request.user
-        user.is_private = user.is_private
-        return user
 
 
-class UserProfileUpdateView(generics.UpdateAPIView):
+class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        user = self.request.user
-        user.is_private = user.is_private
-        return user

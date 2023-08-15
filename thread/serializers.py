@@ -1,6 +1,8 @@
 from thread.models import Thread, Like, Comment
 from rest_framework import serializers
 
+from user.models import CustomUser
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
@@ -24,12 +26,31 @@ class CommentSerializer(serializers.ModelSerializer):
 class ThreadSerializer(serializers.ModelSerializer):
     thread_picture = serializers.ImageField(required=False)
     likes = serializers.SerializerMethodField()
-    comments = CommentSerializer(many=True, read_only=True)
+    comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments']
+        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
+
+    def get_comments_count(self, thread):
+        return Comment.objects.filter(thread=thread).count()
+
+
+class LikedUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'username', 'name', 'profile_picture')
+
+
+class ThreadWithCommentSerializer(ThreadSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Thread
+        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'comments']
+

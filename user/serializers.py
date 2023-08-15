@@ -32,7 +32,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def validate_password(self, value):
         return validate_password(value)
 
-
     def validate(self, data):
         password = data.get('password')
         confirm_password = data.get('confirm_password')
@@ -79,7 +78,7 @@ class UserLoginSerializer(serializers.Serializer):
 
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    
+
     def validate_email(self, value):
         try:
             user = CustomUser.objects.get(email=value)
@@ -88,8 +87,10 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
         return value
 
+
 class OTPVerificationSerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=4)
+
     def validate_otp(self, value):
         try:
             otp_obj = OTP.objects.get(otp=value)
@@ -99,6 +100,7 @@ class OTPVerificationSerializer(serializers.Serializer):
         except OTP.DoesNotExist:
             raise serializers.ValidationError("Invalid OTP.")
         return value
+
 
 class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True)
@@ -132,21 +134,15 @@ class ResetPasswordSerializer(serializers.Serializer):
         return user
 
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
-    is_private = serializers.BooleanField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'name', 'profile_picture',  'bio', 'link', 'is_private')
+        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private')
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    is_private = serializers.BooleanField()
 
     class Meta:
         model = CustomUser
         fields = ('username', 'name', 'bio', 'profile_picture', 'link', 'is_private')
-
-
-
