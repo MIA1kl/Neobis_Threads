@@ -7,7 +7,8 @@ from .serializers import (
     CommentSerializer,
     LikedUserSerializer,
     ThreadWithCommentSerializer,
-    QuotationSerializer
+    QuotationSerializer,
+    RepostSerializer
 )
 from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser, FollowingSystem
@@ -18,7 +19,7 @@ from .mixins import LikedUsersListMixin
 class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -36,11 +37,11 @@ class ThreadListView(generics.ListCreateAPIView):
 class ThreadWithCommentListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadWithCommentSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class ThreadCreateView(generics.CreateAPIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = ThreadSerializer
 
     def perform_create(self, serializer):
@@ -68,7 +69,7 @@ class ThreadLikeView(APIView):
 class ThreadDeleteView(generics.DestroyAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def delete(self, request, *args, **kwargs):
         thread = self.get_object()
@@ -146,7 +147,7 @@ class ThreadQuotationView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        original_thread = serializer.validated_data['thread_id']
+        original_thread = serializer.validated_data['quoted_thread']
         quoted_content = serializer.validated_data.get('quoted_content', '')
         quoted_image = serializer.validated_data.get('quoted_image', None)
 
@@ -154,6 +155,23 @@ class ThreadQuotationView(generics.CreateAPIView):
             author=self.request.user,
             content=quoted_content,
             thread_picture=quoted_image,
+            quoted_thread=original_thread,  
+
+        )
+
+        new_thread_serializer = ThreadSerializer(new_thread)
+        return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
+
+class ThreadRepostView(generics.CreateAPIView):
+    serializer_class = RepostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        original_thread = serializer.validated_data['quoted_thread']
+
+
+        new_thread = Thread.objects.create(
+            author=self.request.user,
             quoted_thread=original_thread,  
 
         )

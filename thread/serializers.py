@@ -69,3 +69,9 @@ class QuotationSerializer(serializers.ModelSerializer):
         fields = ['quoted_thread', 'quoted_content', 'quoted_image']
 
 
+class RepostSerializer(serializers.ModelSerializer):
+    quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
+
+    class Meta:
+        model = Thread
+        fields = ['quoted_thread']
