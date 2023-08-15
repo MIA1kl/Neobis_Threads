@@ -7,8 +7,6 @@ from .serializers import (
     CommentSerializer,
     LikedUserSerializer,
     ThreadWithCommentSerializer,
-    QuotationSerializer,
-    RepostSerializer
 )
 from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser, FollowingSystem
@@ -43,7 +41,7 @@ class ThreadDetailView(generics.RetrieveAPIView):
 class ThreadWithCommentListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadWithCommentSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
 
 class ThreadCreateView(generics.CreateAPIView):
@@ -75,7 +73,7 @@ class ThreadLikeView(APIView):
 class ThreadDeleteView(generics.DestroyAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def delete(self, request, *args, **kwargs):
         thread = self.get_object()
@@ -134,15 +132,3 @@ class CommentLikeView(APIView):
 
         comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data)
-
-
-class ThreadLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
-    model = Thread
-    lookup_field = 'thread_id'
-    related_field = 'likes'
-
-
-class CommentLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
-    model = Comment
-    lookup_field = 'comment_id'
-    related_field = 'comment_likes'

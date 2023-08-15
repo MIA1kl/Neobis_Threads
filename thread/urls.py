@@ -1,15 +1,12 @@
 from django.urls import path
-from .views import (
-    ThreadListView,
-    ThreadCreateView,
-    ThreadLikeView,
-    ThreadCommentView,
-    CommentLikeView,
-    ThreadDeleteView,
-    ThreadLikedUsersListView,
-    ThreadWithCommentListView,
-    CommentLikedUsersListView,
-)
+from .views import (ThreadListView,
+                    ThreadCreateView,
+                    ThreadLikeView,
+                    ThreadCommentView,
+                    CommentLikeView,
+                    ThreadDeleteView,
+
+                    )
 
 
 urlpatterns = [
@@ -21,7 +18,6 @@ urlpatterns = [
     path('threads/<int:thread_id>/like/', ThreadLikeView.as_view(), name='thread-like'),
     path('threads/<int:thread_id>/comments/', ThreadCommentView.as_view(), name='thread-comments'),
     path('comments/<int:comment_id>/like/', CommentLikeView.as_view(), name='comment-like'),
-    path('threads/<int:thread_id>/liked_users/', ThreadLikedUsersListView.as_view(), name='thread-liked-users'),
-    path('comments/<int:comment_id>/liked_users/', CommentLikedUsersListView.as_view(), name='comment-liked-users'),
-
+    path('threads/<int:pk>/like/', ThreadLikeView.as_view(), name='thread-like'),
+    path('threads/<int:pk>/delete/', ThreadDeleteView.as_view(), name='thread-delete'),
 ]

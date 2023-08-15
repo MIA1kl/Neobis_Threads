@@ -70,7 +70,6 @@ class UserLoginView(generics.GenericAPIView):
 
 class UserLogoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = LogoutSerializer  
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh_token')
