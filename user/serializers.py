@@ -6,26 +6,18 @@ from datetime import timedelta
 
 
 def validate_password(value):
-    min_length = 6
-    max_lenght = 14
-    if len(value) < min_length:
-        raise serializers.ValidationError(f'Password must be at least {min_length} characters long.')
+    requirements = [
+        (len(value) >= 6, 'Password must be at least 6 characters long.'),
+        (len(value) <= 14, 'Password must be at most 14 characters long.'),
+        (any(c.isdigit() for c in value), 'Password must contain at least one digit.'),
+        (any(c.isalpha() for c in value), 'Password must contain at least one letter.'),
+        (any(c.isupper() for c in value), 'Password must contain at least one uppercase letter.'),
+        (any(not c.isalnum() for c in value), 'Password must contain at least one special character.')
+    ]
 
-    if len(value) > max_lenght:
-        raise serializers.ValidationError(f'Password must be at more {max_lenght} characters long.')
-
-    if not any(char.isdigit() for char in value):
-        raise serializers.ValidationError('Password must contain at least one digit.')
-
-    if not any(char.isalpha() for char in value):
-        raise serializers.ValidationError('Password must contain at least one letter.')
-
-    if not any(char.isupper() for char in value):
-        raise serializers.ValidationError('Password must contain at least one uppercase letter.')
-
-    if not any(not char.isalnum() for char in value):
-        raise serializers.ValidationError('Password must contain at least one special character.')
-
+    for condition, error_msg in requirements:
+        if not condition:
+            raise serializers.ValidationError(error_msg)
     return value
 
 
