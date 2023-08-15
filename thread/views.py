@@ -17,7 +17,7 @@ from .mixins import LikedUsersListMixin
 class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -39,7 +39,7 @@ class ThreadWithCommentListView(generics.ListCreateAPIView):
 
 
 class ThreadCreateView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     serializer_class = ThreadSerializer
 
     def perform_create(self, serializer):
@@ -126,15 +126,3 @@ class CommentLikeView(APIView):
 
         comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data)
-
-
-class ThreadLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
-    model = Thread
-    lookup_field = 'thread_id'
-    related_field = 'likes'
-
-
-class CommentLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
-    model = Comment
-    lookup_field = 'comment_id'
-    related_field = 'comment_likes'
