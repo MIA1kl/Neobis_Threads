@@ -8,7 +8,9 @@ class Thread(models.Model):
     thread_picture = models.ImageField(upload_to='thread_pictures/', blank=True, null=True)
     author = models.ForeignKey(CustomUser, related_name='threads', on_delete=models.CASCADE)
     likes = models.ManyToManyField(CustomUser, through='Like', related_name='liked_threads')
-
+    reposted_thread = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='reposts')
+    quoted_content = models.TextField(blank=True, default='')  
+    quoted_image = models.ImageField(upload_to='thread_quoted_images/', blank=True, null=True) 
     class Meta:
         ordering = ['-created']
 
