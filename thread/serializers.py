@@ -61,7 +61,7 @@ class ThreadWithCommentSerializer(ThreadSerializer):
 
 class QuotationSerializer(serializers.ModelSerializer):
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
-    quoted_content = serializers.CharField(required=False, allow_blank=True)
+    quoted_content = serializers.CharField(max_length=200,required=False, allow_blank=True)
     quoted_image = serializers.ImageField(required=False)
 
     class Meta:
