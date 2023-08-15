@@ -159,14 +159,3 @@ class UserContactSerializer(serializers.ModelSerializer):
             'action',
         ]
 
-
-class UserFollowingSerializer(serializers.ModelSerializer):
-    following = LikedUserSerializer(many=True, read_only=True)
-    followers = LikedUserSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            'following',
-            'followers',
-        ]

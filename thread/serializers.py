@@ -28,29 +28,13 @@ class ThreadSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
+    reposted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all(), required=False)
+    quoted_content = serializers.CharField(required=False, allow_blank=True)
+    quoted_image = serializers.ImageField(required=False)
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count']
+        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
-
-    def get_comments_count(self, thread):
-        return Comment.objects.filter(thread=thread).count()
-
-
-class LikedUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = CustomUser
-        fields = ('id', 'username', 'name', 'profile_picture')
-
-
-class ThreadWithCommentSerializer(ThreadSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'comments']
-
