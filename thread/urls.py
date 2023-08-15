@@ -9,12 +9,14 @@ from .views import (ThreadListView,
                     ThreadQuotationView,
                     ThreadLikedUsersListView,
                     CommentLikedUsersListView,
-                    ThreadRepostView
+                    ThreadRepostView,
+                    ThreadDetailView
                     )
 
 
 urlpatterns = [
     path('threads/', ThreadListView.as_view(), name='thread_list'),
+    path('threads/<int:pk>/', ThreadDetailView.as_view(), name='thread-detail'), 
     path('create/', ThreadCreateView.as_view(), name='thread_create'),
     path('threads/<int:pk>/delete/', ThreadDeleteView.as_view(), name='thread-delete'),
     path('threads_with_comments/', ThreadWithCommentListView.as_view(), name='thread-with-comments-list'),

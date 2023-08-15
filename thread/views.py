@@ -21,6 +21,12 @@ class ThreadListView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class ThreadDetailView(generics.RetrieveAPIView):
+    queryset = Thread.objects.all()
+    serializer_class = ThreadSerializer
+    permission_classes = [IsAuthenticated]
+
+
 class ThreadWithCommentListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadWithCommentSerializer
