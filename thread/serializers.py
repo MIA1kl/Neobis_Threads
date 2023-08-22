@@ -28,16 +28,20 @@ class ThreadSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
+    quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all(), required=False)
+
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count']
+        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'quoted_thread']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
 
     def get_comments_count(self, thread):
         return Comment.objects.filter(thread=thread).count()
+
+
 
 
 class LikedUserSerializer(serializers.ModelSerializer):
@@ -54,3 +58,20 @@ class ThreadWithCommentSerializer(ThreadSerializer):
         model = Thread
         fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'comments']
 
+
+class QuotationSerializer(serializers.ModelSerializer):
+    quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
+    quoted_content = serializers.CharField(max_length=200,required=False, allow_blank=True)
+    quoted_image = serializers.ImageField(required=False)
+
+    class Meta:
+        model = Thread
+        fields = ['quoted_thread', 'quoted_content', 'quoted_image']
+
+
+class RepostSerializer(serializers.ModelSerializer):
+    quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
+
+    class Meta:
+        model = Thread
+        fields = ['quoted_thread']
