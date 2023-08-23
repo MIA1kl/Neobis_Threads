@@ -1,5 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.response import Response
+from django.db.models import Q
 from .models import Thread, Like, Comment, CommentLike
 from .serializers import (
     ThreadSerializer,
@@ -10,7 +11,7 @@ from .serializers import (
     RepostSerializer
 )
 from rest_framework.permissions import IsAuthenticated
-from user.models import CustomUser
+from user.models import CustomUser, FollowingSystem
 from rest_framework.views import APIView
 from .mixins import LikedUsersListMixin
 
@@ -19,6 +20,18 @@ class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        user = self.request.user
+        subscribed_u sers = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
+        return Thread.objects.filter(
+            Q(author=user) |  # Показываем threads автора
+            Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
+            ~Q(author__is_private=True)  # Показываем public threads
+        )
 
 
 class ThreadDetailView(generics.RetrieveAPIView):
