@@ -8,7 +8,8 @@ from .views import (
     UserProfileUpdateView,
     VerifyOTPView, 
     UserLogoutView,
-    UserContactViewSet
+    UserContactViewSet,
+    ConfirmSubscriptionView
 )
 from rest_framework import routers
 
@@ -24,7 +25,8 @@ urlpatterns = [
     path('profile/', UserProfileDetailView.as_view(), name='user-profile'),
     path('profile/update/', UserProfileUpdateView.as_view(), name='update-user-profile'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),  # New OTP verification endpoint
-    path('', include(users_router.urls)),
+    path('confirm-subscription/<int:user_from_id>/', ConfirmSubscriptionView.as_view(), name='confirm-subscription'),
 
+    path('', include(users_router.urls)),
 ]
 
