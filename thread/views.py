@@ -37,6 +37,15 @@ class ThreadWithCommentListView(generics.ListCreateAPIView):
     serializer_class = ThreadWithCommentSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        subscribed_users = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
+        return Thread.objects.filter(
+            Q(author=user) |  # Показываем threads автора
+            Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
+            ~Q(author__is_private=True)
+        )
+
 
 class ThreadCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]

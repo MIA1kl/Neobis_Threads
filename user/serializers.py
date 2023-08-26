@@ -152,6 +152,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # Получение подписок, где пользователь 'obj' находится в rel_from_set и is_approved=True
         following = FollowingSystem.objects.filter(user_from=obj, is_approved=True).select_related('user_to')
         return LikedUserSerializer([follow.user_to for follow in following], many=True).data
+
+
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
