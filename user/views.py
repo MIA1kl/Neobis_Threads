@@ -11,9 +11,7 @@ from .serializers import (
     ForgotPasswordSerializer,
     UserProfileSerializer,
     UserProfileUpdateSerializer,
-    OTPVerificationSerializer,
-    UserContactSerializer,
-    UserFollowingSerializer,
+    OTPVerificationSerializer, UserContactSerializer, UserFollowingSerializer
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
