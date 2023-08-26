@@ -28,3 +28,5 @@ urlpatterns = [
     path('threads/<int:thread_id>/quote/', ThreadQuotationView.as_view(), name='thread-quote'),
     path('threads/<int:thread_id>/repost/', ThreadRepostView.as_view(), name='thread-repost'),
 ]
+
+
