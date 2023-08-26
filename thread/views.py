@@ -25,7 +25,7 @@ class ThreadListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        subscribed_u sers = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
+        subscribed_users = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
         return Thread.objects.filter(
             Q(author=user) |  # Показываем threads автора
             Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
