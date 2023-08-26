@@ -7,8 +7,7 @@ from .serializers import (
     CommentSerializer,
     LikedUserSerializer,
     ThreadWithCommentSerializer,
-    QuotationSerializer,
-    RepostSerializer
+    QuotationSerializer
 )
 from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser, FollowingSystem
@@ -32,12 +31,6 @@ class ThreadListView(generics.ListCreateAPIView):
             Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
             ~Q(author__is_private=True)  # Показываем public threads
         )
-
-
-class ThreadDetailView(generics.RetrieveAPIView):
-    queryset = Thread.objects.all()
-    serializer_class = ThreadSerializer
-    permission_classes = [IsAuthenticated]
 
 
 class ThreadWithCommentListView(generics.ListCreateAPIView):
@@ -162,7 +155,7 @@ class ThreadQuotationView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        original_thread = serializer.validated_data['quoted_thread']
+        original_thread = serializer.validated_data['thread_id']
         quoted_content = serializer.validated_data.get('quoted_content', '')
         quoted_image = serializer.validated_data.get('quoted_image', None)
 
@@ -170,23 +163,6 @@ class ThreadQuotationView(generics.CreateAPIView):
             author=self.request.user,
             content=quoted_content,
             thread_picture=quoted_image,
-            quoted_thread=original_thread,  
-
-        )
-
-        new_thread_serializer = ThreadSerializer(new_thread)
-        return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
-
-class ThreadRepostView(generics.CreateAPIView):
-    serializer_class = RepostSerializer
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        original_thread = serializer.validated_data['quoted_thread']
-
-
-        new_thread = Thread.objects.create(
-            author=self.request.user,
             quoted_thread=original_thread,  
 
         )
