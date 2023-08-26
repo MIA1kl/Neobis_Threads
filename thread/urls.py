@@ -26,3 +26,5 @@ urlpatterns = [
     path('comments/<int:comment_id>/liked_users/', CommentLikedUsersListView.as_view(), name='comment-liked-users'),
     path('threads/<int:thread_id>/quote/', ThreadQuotationView.as_view(), name='thread-quote'),
 ]
+
+
