@@ -9,7 +9,8 @@ from .views import (
     VerifyOTPView, 
     UserLogoutView,
     UserContactViewSet,
-    ConfirmSubscriptionView
+    ConfirmSubscriptionView,
+    GoogleLogin
 )
 from rest_framework import routers
 
@@ -19,6 +20,7 @@ users_router.register(r'followers', UserContactViewSet, basename='followers')
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
+    path('google/', GoogleLogin.as_view(), name='google-login'),
     path('logout/', UserLogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
