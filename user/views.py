@@ -122,7 +122,6 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = serializer.user
-            OTP.objects.filter(user=user).delete()
             return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -138,9 +137,12 @@ class ResetPasswordView(generics.GenericAPIView):
             password = serializer.validated_data['password']
             user.set_password(password)
             user.save()
+            OTP.objects.filter(user=user).delete()  
             return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
