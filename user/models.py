@@ -26,6 +26,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+AUTH_PROVIDERS = { 'google': 'google','email': 'email'}
 
 class CustomUser(PermissionsMixin, AbstractBaseUser):
     email = models.EmailField(unique=True)
@@ -38,6 +39,7 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     following = models.ManyToManyField('self', through='FollowingSystem', related_name='followers', symmetrical=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    auth_provider = models.CharField(max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
 
 
     def is_profile_private(self):
