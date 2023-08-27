@@ -1,5 +1,8 @@
 from datetime import timedelta
-
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework import generics, viewsets, views
 from rest_framework.response import Response
 from rest_framework import status
@@ -68,6 +71,16 @@ class UserLoginView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }, status=status.HTTP_200_OK)
+        
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    serializer_class = SocialLoginSerializer
+    
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
 
 class UserLogoutView(generics.CreateAPIView):
@@ -122,7 +135,6 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = serializer.user
-            OTP.objects.filter(user=user).delete()
             return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -138,9 +150,12 @@ class ResetPasswordView(generics.GenericAPIView):
             password = serializer.validated_data['password']
             user.set_password(password)
             user.save()
+            OTP.objects.filter(user=user).delete()  
             return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
