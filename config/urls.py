@@ -38,8 +38,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('user.urls')),
-    path('api/v2/', include('thread.urls')),
-    path('api/v1auth/', include('drf_social_oauth2.urls', namespace = 'drf')),
+    path('api/v3/', include('thread.urls')),
+    path('api/v2/', include(('social_auth.urls', 'social_auth'), namespace="social_auth")),
     path('accounts/', include('allauth.urls'), name='socialaccount_signup'),
     path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
