@@ -13,6 +13,7 @@ from .serializers import (
     OTPVerificationSerializer,
     UserContactSerializer,
     UserFollowingSerializer,
+    LogoutSerializer,
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -69,21 +70,18 @@ class UserLoginView(generics.GenericAPIView):
         }, status=status.HTTP_200_OK)
         
 
-class UserLogoutView(generics.CreateAPIView):
+class UserLogoutView(generics.GenericAPIView):
+    serializer_class = LogoutSerializer
+
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.data.get('refresh_token')
+    def post(self, request):
 
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-                return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
-            except TokenError:
-                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"detail": "Refresh token is required for logout."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ForgotPasswordView(generics.GenericAPIView):

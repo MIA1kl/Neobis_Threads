@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.apple',
+    'rest_framework_simplejwt.token_blacklist',
     'oauth2_provider',
     'user',
     'thread',
