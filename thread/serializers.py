@@ -1,8 +1,8 @@
 from thread.models import Thread, Like, Comment
 from rest_framework import serializers
-
+import cloudinary
 from user.models import CustomUser
-
+from cloudinary.uploader import upload
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source='user.username', read_only=True)
@@ -24,7 +24,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ThreadSerializer(serializers.ModelSerializer):
-    thread_picture = serializers.ImageField(required=False)
+    thread_media = serializers.FileField(required=False)
     likes = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
@@ -33,13 +33,30 @@ class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'quoted_thread']
+        fields = ['id', 'content', 'thread_media', 'author', 'likes', 'comments_count', 'quoted_thread']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
 
     def get_comments_count(self, thread):
         return Comment.objects.filter(thread=thread).count()
+    
+    def create(self, validated_data):
+        thread_media = validated_data.pop('thread_media', None)
+
+        thread = Thread.objects.create(**validated_data)
+
+        if thread_media:
+            uploaded_media = self.upload_and_compress_media(thread_media)
+            thread.thread_media = uploaded_media['url']
+            thread.save()
+
+        return thread
+    
+    def upload_and_compress_media(self, media):
+        # Use Cloudinary's upload method to upload and compress the media
+        result = upload(media, resource_type='auto', quality='auto')
+        return result
 
 
 
@@ -56,17 +73,25 @@ class ThreadWithCommentSerializer(ThreadSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_picture', 'author', 'likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'likes', 'comments_count', 'comments']
 
 
 class QuotationSerializer(serializers.ModelSerializer):
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
     quoted_content = serializers.CharField(max_length=200,required=False, allow_blank=True)
-    quoted_image = serializers.ImageField(required=False)
+    quoted_media = serializers.FileField(required=False)
 
     class Meta:
         model = Thread
-        fields = ['quoted_thread', 'quoted_content', 'quoted_image']
+        fields = ['quoted_thread', 'quoted_content', 'quoted_media']
+        
+    def create(self, validated_data):
+        quoted_media = validated_data.get('quoted_media')
+        
+        if quoted_media:
+            validated_data['quoted_media'] = self.upload_and_compress_media(quoted_media)
+
+        return super().create(validated_data)
 
 
 class RepostSerializer(serializers.ModelSerializer):
