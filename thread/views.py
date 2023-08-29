@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from user.models import CustomUser, FollowingSystem
 from rest_framework.views import APIView
 from .mixins import LikedUsersListMixin
-
+import cloudinary.uploader
 
 class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
@@ -164,12 +164,12 @@ class ThreadQuotationView(generics.CreateAPIView):
     def perform_create(self, serializer):
         original_thread = serializer.validated_data['quoted_thread']
         quoted_content = serializer.validated_data.get('quoted_content', '')
-        quoted_image = serializer.validated_data.get('quoted_image', None)
+        quoted_media = serializer.validated_data.get('quoted_media', None)
 
         new_thread = Thread.objects.create(
             author=self.request.user,
             content=quoted_content,
-            thread_picture=quoted_image,
+            thread_media=quoted_media,
             quoted_thread=original_thread,  
 
         )
