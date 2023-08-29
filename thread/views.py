@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from .mixins import LikedUsersListMixin
 import cloudinary.uploader
 
-class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
+class ThreadListView(generics.ListCreateAPIView):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
     permission_classes = [IsAuthenticated]
