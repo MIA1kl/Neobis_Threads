@@ -11,27 +11,18 @@ from .serializers import (
     RepostSerializer
 )
 from rest_framework.permissions import IsAuthenticated
-from user.models import CustomUser, FollowingSystem
+from user.models import FollowingSystem
 from rest_framework.views import APIView
-from .mixins import LikedUsersListMixin
+from .mixins import LikedUsersListMixin, ThreadQuerysetMixin
 
 
-class ThreadListView(generics.ListCreateAPIView):
+class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-
-    def get_queryset(self):
-        user = self.request.user
-        subscribed_users = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
-        return Thread.objects.filter(
-            Q(author=user) |  # Показываем threads автора
-            Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
-            ~Q(author__is_private=True)  # Показываем public threads
-        )
 
 
 class ThreadDetailView(generics.RetrieveAPIView):
@@ -40,19 +31,10 @@ class ThreadDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class ThreadWithCommentListView(generics.ListCreateAPIView):
+class ThreadWithCommentListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     queryset = Thread.objects.all()
     serializer_class = ThreadWithCommentSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        subscribed_users = FollowingSystem.objects.filter(user_from=user, is_approved=True).values_list('user_to', flat=True)
-        return Thread.objects.filter(
-            Q(author=user) |  # Показываем threads автора
-            Q(author__in=subscribed_users) |  # Показываем threads авторов, на которых подписан пользователь и запрос подтвержден
-            ~Q(author__is_private=True)
-        )
 
 
 class ThreadCreateView(generics.CreateAPIView):
