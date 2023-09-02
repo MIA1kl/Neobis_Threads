@@ -41,21 +41,32 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'drf_yasg',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.apple',
-    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'oauth2_provider',
+    'corsheaders',
     'user',
     'thread',
 
 ]
 
+SITE_ID = 1
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -163,6 +174,10 @@ REST_FRAMEWORK = {
     ),
 }
 
+REST_USE_JWT = True
+JWT_AUTH_COOKIE = 'access-token'
+JWT_AUTH_REFRESH_COOKIE = 'refresh-token'
+
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT', 'Bearer'),
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=14),
@@ -180,14 +195,14 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': config('GOOGLE_CLIENT_ID'),
             'secret': config('GOOGLE_SECRET'),
         }
-    },
-    # 'apple': {
-    #     'APP': {
-    #         'client_id': config('APPLE_CLIENT_ID'),
-    #         'secret': config('APPLE_SECRET'),
-    #     }
-    # }
+    }
 }
+
+
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
@@ -196,3 +211,4 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('API_KEY'),
     'API_SECRET': config('API_SECRET'),
 }
+

@@ -1,11 +1,10 @@
 from django.db import models
 from user.models import CustomUser
 
-
 class Thread(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content = models.TextField(max_length=200,blank=True, default='')
-    thread_picture = models.ImageField(upload_to='thread_pictures/', blank=True, null=True)
+    thread_media = models.FileField(upload_to='thread_media/', blank=True, null=True)
     author = models.ForeignKey(CustomUser, related_name='threads', on_delete=models.CASCADE)
     likes = models.ManyToManyField(CustomUser, through='Like', related_name='liked_threads')
     quoted_thread = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='reposts')

@@ -15,6 +15,9 @@ from user.models import FollowingSystem
 from rest_framework.views import APIView
 from .mixins import LikedUsersListMixin, ThreadQuerysetMixin
 
+from .mixins import LikedUsersListMixin
+import cloudinary.uploader
+
 
 class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     queryset = Thread.objects.all()
@@ -146,18 +149,19 @@ class ThreadQuotationView(generics.CreateAPIView):
     def perform_create(self, serializer):
         original_thread = serializer.validated_data['quoted_thread']
         quoted_content = serializer.validated_data.get('quoted_content', '')
-        quoted_image = serializer.validated_data.get('quoted_image', None)
+        quoted_media = serializer.validated_data.get('quoted_media', None)
 
         new_thread = Thread.objects.create(
             author=self.request.user,
             content=quoted_content,
-            thread_picture=quoted_image,
+            thread_media=quoted_media,
             quoted_thread=original_thread,  
 
         )
 
         new_thread_serializer = ThreadSerializer(new_thread)
         return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ThreadRepostView(generics.CreateAPIView):
     serializer_class = RepostSerializer

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from .models import CustomUser, OTP, FollowingSystem
 from thread.serializers import LikedUserSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
 
 
@@ -75,6 +75,25 @@ class UserLoginSerializer(serializers.Serializer):
             'access': str(refresh.access_token)
         }
         return data
+    
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    default_error_message = {
+        'bad_token': ('Token is expired or invalid')
+    }
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        return attrs
+
+    def save(self, **kwargs):
+
+        try:
+            RefreshToken(self.token).blacklist()
+
+        except TokenError:
+            self.fail('bad_token')
 
 
 class ForgotPasswordSerializer(serializers.Serializer):
@@ -104,24 +123,26 @@ class OTPVerificationSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField(write_only=True)
+    otp = serializers.CharField(max_length=4)
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        email = data.get('email')
+        otp = data.get('otp')
         password = data.get('password')
         confirm_password = data.get('confirm_password')
+
+        try:
+            otp_obj = OTP.objects.get(otp=otp)
+            if otp_obj.is_expired:
+                raise serializers.ValidationError("OTP has expired.")
+            data['user'] = otp_obj.user
+        except OTP.DoesNotExist:
+            raise serializers.ValidationError("Invalid OTP.")
 
         if password != confirm_password:
             raise serializers.ValidationError('Passwords do not match!')
 
-        try:
-            user = CustomUser.objects.get(email=email)
-        except CustomUser.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist.")
-
-        data['user'] = user
         return data
 
     def validate_password(self, value):

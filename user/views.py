@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 from rest_framework import generics, viewsets, views
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,6 +13,7 @@ from .serializers import (
     OTPVerificationSerializer,
     UserContactSerializer,
     UserFollowingSerializer,
+    LogoutSerializer,
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -68,23 +68,20 @@ class UserLoginView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }, status=status.HTTP_200_OK)
+        
 
+class UserLogoutView(generics.GenericAPIView):
+    serializer_class = LogoutSerializer
 
-class UserLogoutView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.data.get('refresh_token')
+    def post(self, request):
 
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-                return Response({"detail": "Logout successful."}, status=status.HTTP_205_RESET_CONTENT)
-            except TokenError:
-                return Response({"detail": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"detail": "Refresh token is required for logout."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ForgotPasswordView(generics.GenericAPIView):
@@ -122,7 +119,6 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = serializer.user
-            OTP.objects.filter(user=user).delete()
             return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -138,9 +134,12 @@ class ResetPasswordView(generics.GenericAPIView):
             password = serializer.validated_data['password']
             user.set_password(password)
             user.save()
+            OTP.objects.filter(user=user).delete()  
             return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
