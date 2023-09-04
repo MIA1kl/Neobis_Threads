@@ -14,6 +14,7 @@ from .serializers import (
     UserContactSerializer,
     UserFollowingSerializer,
     LogoutSerializer,
+    UserProfilePictureSerializer,
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -26,6 +27,8 @@ from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import FileUploadParser
+from rest_framework.response import Response
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -149,6 +152,22 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
 
 class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
+
+
+
+class UserProfilePictureUploadView(generics.GenericAPIView):
+    parser_class = (FileUploadParser,)
+    serializer_class = UserProfilePictureSerializer  
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        serializer = UserProfilePictureSerializer(user, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Profile picture uploaded successfully.'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserContactViewSet(viewsets.ViewSet):
