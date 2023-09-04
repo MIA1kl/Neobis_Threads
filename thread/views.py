@@ -18,7 +18,6 @@ from .mixins import LikedUsersListMixin, ThreadQuerysetMixin
 from .mixins import LikedUsersListMixin
 import cloudinary.uploader
 
-
 class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
