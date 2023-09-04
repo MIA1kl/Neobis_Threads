@@ -180,6 +180,13 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('username', 'name', 'bio', 'profile_picture', 'link', 'is_private')
+        
+        
+class UserProfilePictureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('profile_picture',)
+
 
 
 class UserContactSerializer(serializers.ModelSerializer):
