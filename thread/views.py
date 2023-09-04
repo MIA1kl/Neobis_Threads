@@ -13,10 +13,12 @@ from .serializers import (
 from rest_framework.permissions import IsAuthenticated
 from user.models import FollowingSystem
 from rest_framework.views import APIView
+from .mixins import LikedUsersListMixin, ThreadQuerysetMixin
+
 from .mixins import LikedUsersListMixin
 import cloudinary.uploader
 
-class ThreadListView(generics.ListCreateAPIView):
+class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
     permission_classes = [IsAuthenticated]
@@ -158,6 +160,7 @@ class ThreadQuotationView(generics.CreateAPIView):
 
         new_thread_serializer = ThreadSerializer(new_thread)
         return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class ThreadRepostView(generics.CreateAPIView):
     serializer_class = RepostSerializer
