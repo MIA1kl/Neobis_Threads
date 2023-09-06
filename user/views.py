@@ -40,8 +40,7 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             otp_code = OTP.generate_otp()
-            serializer.save()
-            user = serializer.save(is_verified=False)
+            user = serializer.save()
             OTP.objects.create(user=user, otp=otp_code)
             # Send the OTP to the user's email
             subject = 'Verify Email OTP'
@@ -51,7 +50,8 @@ class UserRegistrationView(generics.CreateAPIView):
             send_mail(subject, message, from_email, recipient_list)
             timer = threading.Timer(120, self.delete_user, args=[user.id])
             timer.start()
-            return Response({"message": "OTP sent to your email."}, status=status.HTTP_201_CREATED)
+            user.save()
+        return Response({"message": "OTP sent to your email."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete_user(self, user_id):
@@ -72,7 +72,7 @@ class UserLoginView(generics.GenericAPIView):
         remember_me = serializer.validated_data.get('remember_me', False)
 
         user = authenticate(email=email, password=password)
-        if not user or not user.is_active:
+        if not user:
             raise serializers.ValidationError('Invalid email or password.')
 
         refresh = RefreshToken.for_user(user)
