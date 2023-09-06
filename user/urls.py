@@ -27,6 +27,7 @@ urlpatterns = [
     path('profile/update/', UserProfileUpdateView.as_view(), name='update-user-profile'),
     path('profile/avatar/', UserProfilePictureUploadView.as_view(), name='upload-avatar'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'), 
+    path('verify-email/', VerifyOTPView.as_view(), name='verify_otp'), 
     path('confirm-subscription/<int:user_from_id>/', ConfirmSubscriptionView.as_view(), name='confirm-subscription'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
     path('', include(users_router.urls)),   

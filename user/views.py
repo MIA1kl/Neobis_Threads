@@ -29,6 +29,7 @@ from django.contrib.auth import authenticate
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
+import threading
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -38,9 +39,25 @@ class UserRegistrationView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            otp_code = OTP.generate_otp()
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            user = serializer.save(is_verified=False)
+            OTP.objects.create(user=user, otp=otp_code)
+            # Send the OTP to the user's email
+            subject = 'Verify Email OTP'
+            message = f'Your OTP is: {otp_code}'
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            send_mail(subject, message, from_email, recipient_list)
+            timer = threading.Timer(120, self.delete_user, args=[user.id])
+            timer.start()
+            return Response({"message": "OTP sent to your email."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete_user(self, user_id):
+        CustomUser.objects.filter(id=user_id, is_verified=False).delete()
+        
+
 
 
 class UserLoginView(generics.GenericAPIView):
@@ -122,6 +139,8 @@ class VerifyOTPView(generics.GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = serializer.user
+            user.is_verified = True  # Set is_verified to True
+            user.save() 
             return Response({"message": "OTP verification successful."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

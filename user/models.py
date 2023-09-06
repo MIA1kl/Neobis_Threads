@@ -23,6 +23,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(email, username, password)
         user.is_staff = True
         user.is_superuser = True
+        user.is_verified = True
         user.save(using=self._db)
         return user
 
@@ -39,6 +40,7 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     following = models.ManyToManyField('self', through='FollowingSystem', related_name='followers', symmetrical=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
     auth_provider = models.CharField(max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
 
 
