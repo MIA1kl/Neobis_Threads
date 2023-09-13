@@ -3,6 +3,7 @@ from .views import (ThreadListView,
                     ThreadCreateView,
                     ThreadLikeView,
                     ThreadCommentView,
+                    CommentDeleteView,
                     CommentLikeView,
                     ThreadDeleteView,
                     ThreadWithCommentListView,
@@ -10,7 +11,7 @@ from .views import (ThreadListView,
                     ThreadLikedUsersListView,
                     CommentLikedUsersListView,
                     ThreadRepostView,
-                    ThreadDetailView
+                    ThreadDetailView,
                     )
 
 
@@ -22,6 +23,7 @@ urlpatterns = [
     path('threads_with_comments/', ThreadWithCommentListView.as_view(), name='thread-with-comments-list'),
     path('threads/<int:thread_id>/like/', ThreadLikeView.as_view(), name='thread-like'),
     path('threads/<int:thread_id>/comments/', ThreadCommentView.as_view(), name='thread-comments'),
+    path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment-delete'),
     path('comments/<int:comment_id>/like/', CommentLikeView.as_view(), name='comment-like'),
     path('threads/<int:thread_id>/liked_users/', ThreadLikedUsersListView.as_view(), name='thread-liked-users'),
     path('comments/<int:comment_id>/liked_users/', CommentLikedUsersListView.as_view(), name='comment-liked-users'),

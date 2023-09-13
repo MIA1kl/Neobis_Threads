@@ -1,6 +1,7 @@
 from django.db import models
 from user.models import CustomUser
 
+
 class Thread(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content = models.TextField(max_length=200,blank=True, default='')
