@@ -106,6 +106,22 @@ class ThreadCommentView(APIView):
         return Response(comment_serializer.data, status=status.HTTP_201_CREATED)
 
 
+class CommentDeleteView(generics.DestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, *args, **kwargs):
+        comment = self.get_object()
+
+        if comment.user == request.user or comment.thread.author == request.user:
+            comment.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'detail': 'You do not have permission to delete this comment'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+
 class CommentLikeView(APIView):
     permission_classes = [IsAuthenticated]
 
