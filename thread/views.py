@@ -143,8 +143,6 @@ class CommentLikeView(APIView):
 
         comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data)
-    
-
 
 class ThreadLikedUsersListView(LikedUsersListMixin, generics.ListAPIView):
     model = Thread
