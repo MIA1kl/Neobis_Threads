@@ -210,3 +210,9 @@ class UserFollowingSerializer(serializers.ModelSerializer):
             'following',
             'followers',
         ]
+
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private')
