@@ -1,7 +1,7 @@
 from datetime import timedelta
 from rest_framework import generics, viewsets, views
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters
 from .models import CustomUser
 from .serializers import (
     CustomUserSerializer,
@@ -15,6 +15,7 @@ from .serializers import (
     UserFollowingSerializer,
     LogoutSerializer,
     UserProfilePictureSerializer,
+    UserSearchSerializer
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -245,3 +246,14 @@ class ConfirmSubscriptionView(generics.UpdateAPIView):
         except FollowingSystem.DoesNotExist:
             return Response({'status': 'not_found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+class UserSearchView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSearchSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(is_active=True)
+        return queryset
