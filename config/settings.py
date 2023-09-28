@@ -157,6 +157,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -200,8 +205,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 
 
-CSRF_TRUSTED_ORIGINS = ['https://nataliya-backender.org.kg', 'https://www.nataliya-backender.org.kg']
-CORS_ALLOW_ALL_ORIGINS = True
+
 
 MEDIA_URL = '/media/'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
