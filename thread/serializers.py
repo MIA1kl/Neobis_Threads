@@ -29,11 +29,11 @@ class ThreadSerializer(serializers.ModelSerializer):
     comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all(), required=False)
-
+    username = serializers.CharField(source='author.username', read_only=True)
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'likes', 'comments_count', 'quoted_thread']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'likes', 'comments_count', 'quoted_thread']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
