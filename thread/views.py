@@ -1,5 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.response import Response
+from user.models import CustomUser
 from django.db.models import Q
 from .models import Thread, Like, Comment, CommentLike
 from .serializers import (
@@ -193,3 +194,11 @@ class ThreadRepostView(generics.CreateAPIView):
 
         new_thread_serializer = ThreadSerializer(new_thread)
         return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
+    
+class ThreadsByAuthorListView(generics.ListAPIView):
+    serializer_class = ThreadSerializer
+
+    def get_queryset(self):
+        author_email = self.kwargs['author_email']  
+        author = CustomUser.objects.get(email=author_email)
+        return Thread.objects.filter(author=author)
