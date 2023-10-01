@@ -47,17 +47,13 @@ class ThreadSerializer(serializers.ModelSerializer):
         thread = Thread.objects.create(**validated_data)
 
         if thread_media:
-            uploaded_media = self.upload_and_compress_media(thread_media)
+            uploaded_media = upload(thread_media)
+            
+            # Update the thread's media URL with the Cloudinary URL
             thread.thread_media = uploaded_media['url']
             thread.save()
 
         return thread
-    
-    def upload_and_compress_media(self, media):
-        # Use Cloudinary's upload method to upload and compress the media
-        result = upload(media, resource_type='auto', quality='auto')
-        return result
-
 
 
 
@@ -70,10 +66,12 @@ class LikedUserSerializer(serializers.ModelSerializer):
 
 class ThreadWithCommentSerializer(ThreadSerializer):
     comments = CommentSerializer(many=True, read_only=True)
+    username = serializers.CharField(source='author.username', read_only=True)
+
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'likes', 'comments_count', 'comments']
 
 
 class QuotationSerializer(serializers.ModelSerializer):
