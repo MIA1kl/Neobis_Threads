@@ -2,6 +2,7 @@ from datetime import timedelta
 from rest_framework import generics, viewsets, views
 from rest_framework.response import Response
 from rest_framework import status, filters
+from cloudinary.uploader import upload
 from .models import CustomUser
 from .serializers import (
     CustomUserSerializer,
@@ -176,15 +177,17 @@ class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
 
 
 class UserProfilePictureUploadView(generics.GenericAPIView):
-    parser_class = (FileUploadParser,)
-    serializer_class = UserProfilePictureSerializer  
+    serializer_class = UserProfilePictureSerializer
 
     def post(self, request, *args, **kwargs):
         user = request.user
         serializer = UserProfilePictureSerializer(user, data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            uploaded_file = upload(request.data['profile_picture'])
+            user.profile_picture = uploaded_file['url']
+            user.save()
+
             return Response({'message': 'Profile picture uploaded successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

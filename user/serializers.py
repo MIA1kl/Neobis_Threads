@@ -4,6 +4,9 @@ from .models import CustomUser, OTP, FollowingSystem
 from thread.serializers import LikedUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+import requests
 
 
 def validate_password(value):
@@ -179,7 +182,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'name', 'bio', 'profile_picture', 'link', 'is_private')
+        fields = ('username', 'name', 'bio', 'link', 'is_private')
         
         
 class UserProfilePictureSerializer(serializers.ModelSerializer):
@@ -187,6 +190,27 @@ class UserProfilePictureSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('profile_picture',)
 
+    def validate_profile_picture(self, value):
+        try:
+            response = requests.head(value)
+            response.raise_for_status()
+        except requests.exceptions.RequestException:
+            raise serializers.ValidationError(_("Invalid image URL or the image is not accessible."))
+
+        content_type = response.headers.get('Content-Type', '').lower()
+        if not content_type.startswith('image'):
+            raise serializers.ValidationError(_("The provided URL does not point to an image."))
+
+        # Check file size (max 3MB)
+        max_size = 3 * 1024 * 1024  
+        if 'content-length' in response.headers and int(response.headers['content-length']) > max_size:
+            raise serializers.ValidationError(_("Image size exceeds the maximum limit of 3MB."))
+
+        allowed_formats = ['image/jpeg', 'image/jpg', 'image/png']
+        if content_type not in allowed_formats:
+            raise serializers.ValidationError(_("Image format is not supported. Allowed formats: jpg, jpeg, png."))
+
+        return value
 
 
 class UserContactSerializer(serializers.ModelSerializer):
