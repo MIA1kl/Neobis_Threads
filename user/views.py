@@ -263,12 +263,8 @@ class UserSearchView(generics.ListAPIView):
 
 
         if search_query:
-            queryset = CustomUser.objects.filter(is_active=True).filter(
-                models.Q(username__icontains=search_query) |
-                models.Q(name__icontains=search_query)
-            )
+            queryset = CustomUser.objects.filter(is_active=True, username__iexact=search_query)
         else:
-            # Если нет параметров поиска, возвращаем все активные пользователи
             queryset = CustomUser.objects.filter(is_active=True)
 
         return queryset
