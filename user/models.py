@@ -34,7 +34,7 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     name = models.CharField(max_length=100, null=True, blank=True)
     username = models.CharField(max_length=50, unique=True)
     bio = models.TextField(blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    profile_picture = models.URLField(blank=True, null=True)
     link = models.URLField(blank=True, null=True)
     is_private = models.BooleanField(default=False)
     following = models.ManyToManyField('self', through='FollowingSystem', related_name='followers', symmetrical=False)
