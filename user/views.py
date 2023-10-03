@@ -248,12 +248,24 @@ class ConfirmSubscriptionView(generics.UpdateAPIView):
 
 
 class UserSearchView(generics.ListAPIView):
-    queryset = CustomUser.objects.all()
+    queryset = CustomUser.objects.filter(is_active=True)
     serializer_class = UserSearchSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['username', 'name']
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(is_active=True)
+
+        search_query = self.request.query_params.get('search', None)
+
+
+        if search_query:
+            queryset = CustomUser.objects.filter(is_active=True).filter(
+                models.Q(username__icontains=search_query) |
+                models.Q(name__icontains=search_query)
+            )
+        else:
+            # Если нет параметров поиска, возвращаем все активные пользователи
+            queryset = CustomUser.objects.filter(is_active=True)
+
         return queryset
