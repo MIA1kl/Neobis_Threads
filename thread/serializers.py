@@ -9,10 +9,11 @@ class CommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     created = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
     likes = serializers.SerializerMethodField()
+    thread_content = serializers.SerializerMethodField()  
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies']
+        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies', 'thread_content']  
 
     def get_replies(self, comment):
         replies = Comment.objects.filter(parent=comment)
@@ -21,6 +22,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_likes(self, comment):
         return comment.comment_likes.count()
+
+    def get_thread_content(self, comment):  
+        return comment.thread.content if comment.thread else None
+
 
 
 class ThreadSerializer(serializers.ModelSerializer):
@@ -33,7 +38,7 @@ class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'likes', 'comments_count', 'quoted_thread']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
@@ -71,7 +76,7 @@ class ThreadWithCommentSerializer(ThreadSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'comments']
 
 
 class QuotationSerializer(serializers.ModelSerializer):
