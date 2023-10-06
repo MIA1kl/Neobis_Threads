@@ -258,13 +258,12 @@ class UserSearchView(generics.ListAPIView):
     search_fields = ['username', 'name']
 
     def get_queryset(self):
-
         search_query = self.request.query_params.get('search', None)
 
-
         if search_query:
-            queryset = CustomUser.objects.filter(is_active=True, username__iexact=search_query)
+            queryset = CustomUser.objects.filter(is_active=True, username__icontains=search_query)
         else:
             queryset = CustomUser.objects.filter(is_active=True)
 
         return queryset
+
