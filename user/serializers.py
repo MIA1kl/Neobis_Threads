@@ -237,6 +237,14 @@ class UserFollowingSerializer(serializers.ModelSerializer):
 
 
 class UserSearchSerializer(serializers.ModelSerializer):
+    is_following = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private')
+        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'is_following')
+
+    def get_is_following(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return FollowingSystem.objects.filter(user_from=user, user_to=obj, is_approved=True).exists()
+        return False
