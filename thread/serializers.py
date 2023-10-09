@@ -10,10 +10,11 @@ class CommentSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
     likes = serializers.SerializerMethodField()
     thread_content = serializers.SerializerMethodField()  
+    mentions = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies', 'thread_content']  
+        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies', 'thread_content', 'mentions']  
 
     def get_replies(self, comment):
         replies = Comment.objects.filter(parent=comment)
@@ -25,6 +26,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_thread_content(self, comment):  
         return comment.thread.content if comment.thread else None
+    
+    def get_mentions(self, comment):
+        mentions = comment.mentions.all()
+        return [f'@{mention.username}' for mention in mentions]
 
 
 
@@ -35,16 +40,21 @@ class ThreadSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all(), required=False)
     username = serializers.CharField(source='author.username', read_only=True)
+    mentioned_users = serializers.SerializerMethodField()  
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread', 'mentioned_users']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
 
     def get_comments_count(self, thread):
         return Comment.objects.filter(thread=thread).count()
+    
+    def get_mentioned_users(self, thread):
+        mentions = thread.mentioned_users.all()
+        return [f'@{mention.username}' for mention in mentions]
     
     def create(self, validated_data):
         thread_media = validated_data.pop('thread_media', None)
@@ -54,7 +64,6 @@ class ThreadSerializer(serializers.ModelSerializer):
         if thread_media:
             uploaded_media = upload(thread_media)
             
-            # Update the thread's media URL with the Cloudinary URL
             thread.thread_media = uploaded_media['url']
             thread.save()
 

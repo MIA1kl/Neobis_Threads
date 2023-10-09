@@ -11,6 +11,7 @@ from .serializers import (
     QuotationSerializer,
     RepostSerializer
 )
+import re
 from rest_framework.permissions import IsAuthenticated
 from user.models import FollowingSystem
 from rest_framework.views import APIView
@@ -45,7 +46,11 @@ class ThreadCreateView(generics.CreateAPIView):
     serializer_class = ThreadSerializer
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        content = self.request.data.get('content', '')  
+        mentions = re.findall(r'@(\w+)', content)  
+
+        thread = serializer.save(author=self.request.user)
+        thread.mentioned_users.set(CustomUser.objects.filter(username__in=mentions))
 
 
 class ThreadLikeView(APIView):
