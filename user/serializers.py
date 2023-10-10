@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import requests
-
+from django.db.models import Q
 
 def validate_password(value):
     requirements = [
@@ -221,6 +221,7 @@ class UserContactSerializer(serializers.ModelSerializer):
         fields = [
             'user_to',
             'action',
+            'is_pending',
         ]
 
 
@@ -246,5 +247,9 @@ class UserSearchSerializer(serializers.ModelSerializer):
     def get_is_following(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            return FollowingSystem.objects.filter(user_from=user, user_to=obj, is_approved=True).exists()
+            # Измените запрос так, чтобы он использовал Q-объект для OR условия
+            return FollowingSystem.objects.filter(
+                Q(user_from=user, user_to=obj, is_approved=True) |
+                Q(user_from=obj, user_to=user, is_approved=True)
+            ).exists()
         return False

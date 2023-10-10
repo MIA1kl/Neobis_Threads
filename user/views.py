@@ -16,7 +16,7 @@ from .serializers import (
     UserFollowingSerializer,
     LogoutSerializer,
     UserProfilePictureSerializer,
-    UserSearchSerializer
+    UserSearchSerializer,
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -30,6 +30,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FileUploadParser
+from django.db.models import Subquery, OuterRef
 from rest_framework.response import Response
 import threading
 
@@ -170,18 +171,6 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
 
-    def get_pending_follow_requests(self, request, *args, **kwargs):
-        user = self.request.user
-        pending_follow_requests = FollowingSystem.objects.filter(user_to=user, is_approved=False)
-        serializer = UserSearchSerializer(pending_follow_requests.values('user_from'), many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get(self, request, *args, **kwargs):
-        if request.query_params.get('pending_follow_requests'):
-            return self.get_pending_follow_requests(request, *args, **kwargs)
-
-        return super().get(request, *args, **kwargs)
-
 
 class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
@@ -216,6 +205,11 @@ class UserContactViewSet(viewsets.ViewSet):
             to_user = CustomUser.objects.get(id=serializer.data['user_to'])
             is_private = to_user.is_private
 
+            # Проверяем, не отправлен ли уже запрос на подписку
+            existing_request = FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user)
+            if existing_request.exists():
+                return Response({'status': 'request_already_sent'})
+
             if self.request.user != to_user:
                 try:
                     if serializer.data['action'] == 'follow':
@@ -243,6 +237,18 @@ class UserContactViewSet(viewsets.ViewSet):
         user = get_object_or_404(queryset, username=username)
         serializer = UserFollowingSerializer(user)
         return Response(serializer.data)
+
+
+class PendingFollowRequestsView(generics.ListAPIView):
+    serializer_class = UserSearchSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return CustomUser.objects.filter(
+            rel_from_set__user_to=user,
+            rel_from_set__is_approved=False
+        )
 
 
 class ConfirmSubscriptionView(generics.UpdateAPIView):
@@ -278,4 +284,3 @@ class UserSearchView(generics.ListAPIView):
             queryset = CustomUser.objects.filter(is_active=True)
 
         return queryset
-

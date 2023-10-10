@@ -1,19 +1,21 @@
 from django.urls import path
-from .views import (ThreadListView,
-                    ThreadCreateView,
-                    ThreadLikeView,
-                    ThreadCommentView,
-                    CommentDeleteView,
-                    CommentLikeView,
-                    ThreadDeleteView,
-                    ThreadWithCommentListView,
-                    ThreadQuotationView,
-                    ThreadLikedUsersListView,
-                    CommentLikedUsersListView,
-                    ThreadRepostView,
-                    ThreadDetailView,
-                    ThreadsByAuthorListView
-                    )
+from .views import (
+    ThreadListView,
+    ThreadCreateView,
+    ThreadLikeView,
+    ThreadCommentView,
+    CommentDeleteView,
+    CommentLikeView,
+    ThreadDeleteView,
+    ThreadWithCommentListView,
+    ThreadQuotationView,
+    ThreadLikedUsersListView,
+    CommentLikedUsersListView,
+    ThreadRepostView,
+    ThreadDetailView,
+    ThreadsByAuthorListView,
+    ThreadsFromFollowedUsersView
+)
 
 
 urlpatterns = [
@@ -30,6 +32,6 @@ urlpatterns = [
     path('comments/<int:comment_id>/liked_users/', CommentLikedUsersListView.as_view(), name='comment-liked-users'),
     path('threads/<int:thread_id>/quote/', ThreadQuotationView.as_view(), name='thread-quote'),
     path('threads/<int:thread_id>/repost/', ThreadRepostView.as_view(), name='thread-repost'),
-    path('threads/<str:author_email>/', ThreadsByAuthorListView.as_view(), name='threads-by-author'),]
-
-
+    path('threads/<str:author_email>/', ThreadsByAuthorListView.as_view(), name='threads-by-author'),
+    path('threads-followed/', ThreadsFromFollowedUsersView.as_view(), name='threads-by-following'),
+]

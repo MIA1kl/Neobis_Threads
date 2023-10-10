@@ -2,6 +2,7 @@ from rest_framework import status, generics
 from rest_framework.response import Response
 from user.models import CustomUser
 from django.db.models import Q
+from django.http import Http404
 from .models import Thread, Like, Comment, CommentLike
 from .serializers import (
     ThreadSerializer,
@@ -16,7 +17,8 @@ from rest_framework.permissions import IsAuthenticated
 from user.models import FollowingSystem
 from rest_framework.views import APIView
 from .mixins import LikedUsersListMixin, ThreadQuerysetMixin
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .mixins import LikedUsersListMixin
 import cloudinary.uploader
 
@@ -26,8 +28,17 @@ class ThreadListView(generics.ListCreateAPIView, ThreadQuerysetMixin):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        thread = serializer.save(author=self.request.user)
 
+        # Отправка обновления в WebSocket
+        # channel_layer = get_channel_layer()
+        # async_to_sync(channel_layer.group_send)(
+        #     'chat_group',
+        #     {
+        #         'type': 'update_thread',
+        #         'data': ThreadSerializer(thread).data,
+        #     }
+        # )
 
 class ThreadDetailView(generics.RetrieveAPIView):
     queryset = Thread.objects.all()
@@ -207,3 +218,13 @@ class ThreadsByAuthorListView(generics.ListAPIView):
         author_email = self.kwargs['author_email']  
         author = CustomUser.objects.get(email=author_email)
         return Thread.objects.filter(author=author)
+
+
+class ThreadsFromFollowedUsersView(generics.ListAPIView):
+    serializer_class = ThreadWithCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        followed_users = FollowingSystem.objects.filter(user_from=user).values_list('user_to', flat=True)
+        return Thread.objects.filter(author__in=followed_users)
