@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, OTP, FollowingSystem
+from .models import CustomUser, OTP, FollowingSystem, FollowerRequest
 from thread.serializers import LikedUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
@@ -25,12 +25,21 @@ def validate_password(value):
     return value
 
 
+
+
+class FollowerRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FollowerRequest
+        fields = ('id', 'from_user', 'to_user', 'created_at')
+
+
 class CustomUserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
+    follower_requests = FollowerRequestSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'password', 'confirm_password')
+        fields = ('id', 'email', 'username', 'password', 'confirm_password', 'follower_requests')
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_password(self, value):
