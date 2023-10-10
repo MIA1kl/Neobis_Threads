@@ -42,8 +42,6 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
     auth_provider = models.CharField(max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
-    follower_requests = models.ManyToManyField('self', through='FollowerRequest', symmetrical=False,
-                                               related_name='following_requests')
 
     def is_profile_private(self):
         return self.is_private
@@ -63,23 +61,6 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
-
-    def send_follow_request(self, to_user):
-        if not self.is_private or to_user.is_private:
-            request, created = FollowerRequest.objects.get_or_create(from_user=self, to_user=to_user)
-            return request, created
-        return None, False
-
-    def get_follower_requests(self):
-        return self.follower_requests_received.all()
-
-class FollowerRequest(models.Model):
-    from_user = models.ForeignKey(CustomUser, related_name='follower_requests_sent', on_delete=models.CASCADE)
-    to_user = models.ForeignKey(CustomUser, related_name='follower_requests_received', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'@{self.from_user.username} wants to follow {self.to_user.username}'
 
 
 class OTP(models.Model):
@@ -102,6 +83,7 @@ class FollowingSystem(models.Model):
     user_from = models.ForeignKey(CustomUser, related_name='rel_from_set', on_delete=models.CASCADE)
     user_to = models.ForeignKey(CustomUser, related_name='rel_to_set', on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
+    is_pending = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

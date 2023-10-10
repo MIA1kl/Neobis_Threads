@@ -12,7 +12,7 @@ from .views import (
     ConfirmSubscriptionView,
     UserProfilePictureUploadView,
     UserSearchView,
-    FollowRequestView,
+    PendingFollowRequestsView,
 )
 from rest_framework import routers
 
@@ -34,7 +34,5 @@ urlpatterns = [
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
     path('', include(users_router.urls)),
     path('user/search/', UserSearchView.as_view(), name='user-search'),
-    path('follow/<int:user_id>/', FollowRequestView.as_view(), name='follow-request'),
-    path('follower-requests/', FollowerRequestsView.as_view(), name='follower-requests'),
-    path('follower-requests/<int:request_id>/', FollowerRequestsView.as_view(), name='accept-follower-request'),
+    path('pending_follow_requests/', PendingFollowRequestsView.as_view(), name='pending-follow-requests'),
 ]

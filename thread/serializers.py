@@ -40,11 +40,12 @@ class ThreadSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField()
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all(), required=False)
     username = serializers.CharField(source='author.username', read_only=True)
-    mentioned_users = serializers.SerializerMethodField()  
+    mentioned_users = serializers.SerializerMethodField()
+    liked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread', 'mentioned_users']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread', 'mentioned_users', 'liked_by_user']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
@@ -55,7 +56,12 @@ class ThreadSerializer(serializers.ModelSerializer):
     def get_mentioned_users(self, thread):
         mentions = thread.mentioned_users.all()
         return [f'@{mention.username}' for mention in mentions]
-    
+
+    def get_liked_by_user(self, thread):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return Like.objects.filter(thread=thread, user=request.user).exists()
+        return False
     def create(self, validated_data):
         thread_media = validated_data.pop('thread_media', None)
 
@@ -69,6 +75,10 @@ class ThreadSerializer(serializers.ModelSerializer):
 
         return thread
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Добавьте дополнительные поля, если необходимо
+        return representation
 
 
 class LikedUserSerializer(serializers.ModelSerializer):
@@ -112,3 +122,10 @@ class RepostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thread
         fields = ['quoted_thread']
+
+
+class ThreadListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Thread
+        fields = '__all__'

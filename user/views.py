@@ -3,7 +3,7 @@ from rest_framework import generics, viewsets, views
 from rest_framework.response import Response
 from rest_framework import status, filters
 from cloudinary.uploader import upload
-from .models import CustomUser, FollowerRequest
+from .models import CustomUser
 from .serializers import (
     CustomUserSerializer,
     UserLoginSerializer,
@@ -17,7 +17,6 @@ from .serializers import (
     LogoutSerializer,
     UserProfilePictureSerializer,
     UserSearchSerializer,
-    FollowerRequestSerializer,
 )
 from .mixins import BaseUserProfileViewMixin
 from django.core.mail import send_mail
@@ -31,6 +30,7 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FileUploadParser
+from django.db.models import Subquery, OuterRef
 from rest_framework.response import Response
 import threading
 
@@ -205,6 +205,11 @@ class UserContactViewSet(viewsets.ViewSet):
             to_user = CustomUser.objects.get(id=serializer.data['user_to'])
             is_private = to_user.is_private
 
+            # Проверяем, не отправлен ли уже запрос на подписку
+            existing_request = FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user)
+            if existing_request.exists():
+                return Response({'status': 'request_already_sent'})
+
             if self.request.user != to_user:
                 try:
                     if serializer.data['action'] == 'follow':
@@ -232,6 +237,18 @@ class UserContactViewSet(viewsets.ViewSet):
         user = get_object_or_404(queryset, username=username)
         serializer = UserFollowingSerializer(user)
         return Response(serializer.data)
+
+
+class PendingFollowRequestsView(generics.ListAPIView):
+    serializer_class = UserSearchSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return CustomUser.objects.filter(
+            rel_from_set__user_to=user,
+            rel_from_set__is_approved=False
+        )
 
 
 class ConfirmSubscriptionView(generics.UpdateAPIView):
@@ -267,37 +284,3 @@ class UserSearchView(generics.ListAPIView):
             queryset = CustomUser.objects.filter(is_active=True)
 
         return queryset
-
-
-class FollowRequestView(views.APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, user_id):
-        to_user = CustomUser.objects.get(pk=user_id)
-        request_user = request.user
-
-        if not to_user.is_private or request_user.is_private:
-            follower_request, created = request_user.send_follow_request(to_user)
-
-            if created:
-                serializer = FollowerRequestSerializer(follower_request)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'detail': 'Request already sent.'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'detail': 'Unable to send follow request to private user.'}, status=status.HTTP_400_BAD_REQUEST)
-
-class FollowerRequestsView(views.APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        follower_requests = user.get_follower_requests()
-        serializer = FollowerRequestSerializer(follower_requests, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def put(self, request, request_id):
-        follower_request = FollowerRequest.objects.get(pk=request_id)
-        follower_request.to_user.following.add(follower_request.from_user)
-        follower_request.delete()
-        return Response({'detail': 'Follower request accepted successfully.'}, status=status.HTTP_200_OK)

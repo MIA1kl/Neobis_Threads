@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser, OTP, FollowingSystem, FollowerRequest
+from .models import CustomUser, OTP, FollowingSystem
 from thread.serializers import LikedUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 import requests
-
+from django.db.models import Q
 
 def validate_password(value):
     requirements = [
@@ -25,21 +25,12 @@ def validate_password(value):
     return value
 
 
-
-
-class FollowerRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FollowerRequest
-        fields = ('id', 'from_user', 'to_user', 'created_at')
-
-
 class CustomUserSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only=True)
-    follower_requests = FollowerRequestSerializer(many=True, read_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'password', 'confirm_password', 'follower_requests')
+        fields = ('id', 'email', 'username', 'password', 'confirm_password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate_password(self, value):
@@ -230,6 +221,7 @@ class UserContactSerializer(serializers.ModelSerializer):
         fields = [
             'user_to',
             'action',
+            'is_pending',
         ]
 
 
@@ -255,5 +247,9 @@ class UserSearchSerializer(serializers.ModelSerializer):
     def get_is_following(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            return FollowingSystem.objects.filter(user_from=user, user_to=obj, is_approved=True).exists()
+            # Измените запрос так, чтобы он использовал Q-объект для OR условия
+            return FollowingSystem.objects.filter(
+                Q(user_from=user, user_to=obj, is_approved=True) |
+                Q(user_from=obj, user_to=user, is_approved=True)
+            ).exists()
         return False
