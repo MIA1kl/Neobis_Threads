@@ -43,7 +43,6 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     is_verified = models.BooleanField(default=False)
     auth_provider = models.CharField(max_length=255, blank=False, null=False, default=AUTH_PROVIDERS.get('email'))
 
-
     def is_profile_private(self):
         return self.is_private
 
@@ -84,6 +83,7 @@ class FollowingSystem(models.Model):
     user_from = models.ForeignKey(CustomUser, related_name='rel_from_set', on_delete=models.CASCADE)
     user_to = models.ForeignKey(CustomUser, related_name='rel_to_set', on_delete=models.CASCADE)
     is_approved = models.BooleanField(default=False)
+    is_pending = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
