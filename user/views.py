@@ -173,7 +173,7 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
     def get_pending_follow_requests(self, request, *args, **kwargs):
         user = self.request.user
         pending_follow_requests = FollowingSystem.objects.filter(user_to=user, is_approved=False)
-        serializer = UserSearchSerializer(pending_follow_requests, many=True)
+        serializer = UserSearchSerializer(pending_follow_requests.values('user_from'), many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
