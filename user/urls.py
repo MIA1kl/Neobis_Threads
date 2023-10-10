@@ -32,7 +32,9 @@ urlpatterns = [
     path('confirm-subscription/<int:user_from_id>/', ConfirmSubscriptionView.as_view(), name='confirm-subscription'),
     path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
     path('', include(users_router.urls)),
-    path('user/search/', UserSearchView.as_view(), name='user-search')
+    path('user/search/', UserSearchView.as_view(), name='user-search'),
+    path('profile/pending-follow-requests/', UserProfileDetailView.as_view(),
+         {'pending_follow_requests': True}, name='pending-follow-requests'),
 
 
 ]
