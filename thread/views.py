@@ -212,7 +212,7 @@ class ThreadRepostView(generics.CreateAPIView):
         return Response(new_thread_serializer.data, status=status.HTTP_201_CREATED)
     
 class ThreadsByAuthorListView(generics.ListAPIView):
-    serializer_class = ThreadWithCommentSerializer
+    serializer_class = ThreadSerializer
 
     def get_queryset(self):
         author_email = self.kwargs['author_email']  
@@ -221,7 +221,7 @@ class ThreadsByAuthorListView(generics.ListAPIView):
 
 
 class ThreadsFromFollowedUsersView(generics.ListAPIView):
-    serializer_class = ThreadWithCommentSerializer
+    serializer_class = ThreadSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
