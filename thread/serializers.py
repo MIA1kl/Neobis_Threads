@@ -91,12 +91,18 @@ class LikedUserSerializer(serializers.ModelSerializer):
 class ThreadWithCommentSerializer(ThreadSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     username = serializers.CharField(source='author.username', read_only=True)
+    liked_by_user = serializers.SerializerMethodField()
 
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count', 'comments', 'liked_by_user']
 
+    def get_liked_by_user(self, thread):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return Like.objects.filter(thread=thread, user=request.user).exists()
+        return False
 
 class QuotationSerializer(serializers.ModelSerializer):
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
