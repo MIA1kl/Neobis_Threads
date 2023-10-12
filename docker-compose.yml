@@ -22,10 +22,18 @@ services:
     build: ./nginx
     volumes:
       - static_volume:/code/static
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - web
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
 volumes:
   pgdata:
   static_volume:

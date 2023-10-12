@@ -213,7 +213,11 @@ class ThreadRepostView(generics.CreateAPIView):
     
 class ThreadsByAuthorListView(generics.ListAPIView):
     serializer_class = ThreadWithCommentSerializer
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> origin
     def get_queryset(self):
         author_email = self.kwargs['author_email']  
         author = CustomUser.objects.get(email=author_email)
