@@ -95,8 +95,7 @@ class ThreadWithCommentSerializer(ThreadSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'comments']
-
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count', 'comments', ]
 
 class QuotationSerializer(serializers.ModelSerializer):
     quoted_thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all()) 
