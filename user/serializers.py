@@ -162,15 +162,10 @@ class ResetPasswordSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
-    followers_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'following',
-                  'followers', 'followers_count')
-
-    def get_followers_count(self, obj):
-        return obj.followers.count()
+        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'following', 'followers')
 
     def get_followers(self, obj):
         followers = FollowingSystem.objects.filter(user_to=obj, is_approved=True).select_related('user_from')

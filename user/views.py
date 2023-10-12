@@ -171,13 +171,6 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserProfileSerializer
 
-    def get(self, request, *args, **kwargs):
-        response = super().get(request, *args, **kwargs)
-        user = self.get_object()
-        followers_count = user.followers.count()
-        response.data['followers_count'] = followers_count
-        return response
-
 
 class UserProfileUpdateView(BaseUserProfileViewMixin, generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
