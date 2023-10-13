@@ -290,3 +290,4 @@ class UserSearchView(generics.ListAPIView):
             queryset = CustomUser.objects.filter(is_active=True)
 
         return queryset
+
