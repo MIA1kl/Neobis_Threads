@@ -249,7 +249,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'is_following',
-                  'followers_count')
+                  'followers_count', 'profile_picture')
 
     def get_is_following(self, obj):
         user = self.context['request'].user
