@@ -91,11 +91,12 @@ class LikedUserSerializer(serializers.ModelSerializer):
 class ThreadWithCommentSerializer(ThreadSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     username = serializers.CharField(source='author.username', read_only=True)
-
+    profile_picture = serializers.URLField(source='author.profile_picture', read_only=True)
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count',
+                  'comments', 'profile_picture']
 
 
 class QuotationSerializer(serializers.ModelSerializer):
