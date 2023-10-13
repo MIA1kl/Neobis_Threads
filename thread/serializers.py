@@ -42,10 +42,12 @@ class ThreadSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='author.username', read_only=True)
     mentioned_users = serializers.SerializerMethodField()
     liked_by_user = serializers.SerializerMethodField()
+    profile_picture = serializers.URLField(source='author.profile_picture', read_only=True)
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'quoted_thread', 'mentioned_users', 'liked_by_user']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count',
+                  'quoted_thread', 'mentioned_users', 'liked_by_user', 'profile_picture']
 
     def get_likes(self, thread):
         return Like.objects.filter(thread=thread).count()
@@ -91,11 +93,12 @@ class LikedUserSerializer(serializers.ModelSerializer):
 class ThreadWithCommentSerializer(ThreadSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     username = serializers.CharField(source='author.username', read_only=True)
-
+    profile_picture = serializers.URLField(source='author.profile_picture', read_only=True)
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created','likes', 'comments_count', 'comments']
+        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count',
+                  'comments', 'profile_picture']
 
 
 class QuotationSerializer(serializers.ModelSerializer):

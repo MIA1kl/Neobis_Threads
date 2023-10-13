@@ -32,4 +32,4 @@ class ThreadQuerysetMixin:
             Q(author=user) |
             Q(author__in=subscribed_users) |
             ~Q(author__is_private=True)
-        )
+        ).select_related('author')
