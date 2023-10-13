@@ -244,17 +244,21 @@ class UserFollowingSerializer(serializers.ModelSerializer):
 
 class UserSearchSerializer(serializers.ModelSerializer):
     is_following = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'is_following')
+        fields = ('id', 'email', 'username', 'name', 'profile_picture', 'bio', 'link', 'is_private', 'is_following',
+                  'followers_count')
 
     def get_is_following(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
-            # Измените запрос так, чтобы он использовал Q-объект для OR условия
             return FollowingSystem.objects.filter(
                 Q(user_from=user, user_to=obj, is_approved=True) |
                 Q(user_from=obj, user_to=user, is_approved=True)
             ).exists()
         return False
+
+    def get_followers_count(self, obj):
+        return obj.followers.count()
