@@ -174,7 +174,7 @@ class UserProfileDetailView(BaseUserProfileViewMixin, generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
         user = self.get_object()
-        followers_count = user.followers.count()
+        followers_count = FollowingSystem.objects.filter(user_to=user, is_approved=True).count()
         response.data['followers_count'] = followers_count
         return response
 
@@ -211,24 +211,26 @@ class UserContactViewSet(viewsets.ViewSet):
             to_user = CustomUser.objects.get(id=serializer.data['user_to'])
             is_private = to_user.is_private
 
-            # Проверяем, не отправлен ли уже запрос на подписку
-            existing_request = FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user)
-            if existing_request.exists():
-                return Response({'status': 'request_already_sent'})
-
             if self.request.user != to_user:
                 try:
                     if serializer.data['action'] == 'follow':
+                        existing_request = FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user, is_pending=True)
+                        if existing_request.exists():
+                            existing_request.delete()  # Удаляем существующий запрос перед новым запросом
+                            return Response({'status': 'request_sent'})
+
                         if is_private:
-                            FollowingSystem.objects.create(user_from=self.request.user, user_to=to_user)
+                            FollowingSystem.objects.create(user_from=self.request.user, user_to=to_user, is_pending=True)
                             return Response({'status': 'request_sent'})
                         else:
-                            FollowingSystem.objects.create(user_from=self.request.user, user_to=to_user,
-                                                           is_approved=True)
+                            FollowingSystem.objects.create(user_from=self.request.user, user_to=to_user, is_approved=True)
                             return Response({'status': 'followed'})
 
-                    if serializer.data['action'] == 'unfollow':
-                        FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user).delete()
+                    elif serializer.data['action'] == 'unfollow':
+                        # Удаляем запрос на подписку, если он есть
+                        FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user, is_pending=True).delete()
+                        # Удаляем подписку, если она есть
+                        FollowingSystem.objects.filter(user_from=self.request.user, user_to=to_user, is_approved=True).delete()
                         return Response({'status': 'unfollowed'})
 
                 except:
@@ -237,7 +239,6 @@ class UserContactViewSet(viewsets.ViewSet):
                 return Response({'status': 'no_need_to_follow_yourself'})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    # authenticated user can search for any user's public info
     def retrieve(self, request, username=None):
         queryset = CustomUser.objects.all()
         user = get_object_or_404(queryset, username=username)
