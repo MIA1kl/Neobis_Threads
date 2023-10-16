@@ -35,6 +35,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ThreadSerializer(serializers.ModelSerializer):
     thread_media = serializers.FileField(required=False)
+    thread_video= serializers.FileField(required=False)
     likes = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
     author = serializers.StringRelatedField()
@@ -46,7 +47,7 @@ class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count',
+        fields = ['id', 'content', 'thread_media','thread_video', 'author', 'username', 'created', 'likes', 'comments_count',
                   'quoted_thread', 'mentioned_users', 'liked_by_user', 'profile_picture']
 
     def get_likes(self, thread):
@@ -66,7 +67,7 @@ class ThreadSerializer(serializers.ModelSerializer):
         return False
     def create(self, validated_data):
         thread_media = validated_data.pop('thread_media', None)
-
+        thread_video = validated_data.pop('thread_video', None)
         thread = Thread.objects.create(**validated_data)
 
         if thread_media:
@@ -74,6 +75,11 @@ class ThreadSerializer(serializers.ModelSerializer):
             
             thread.thread_media = uploaded_media['url']
             thread.save()
+            
+        if thread_video:
+            uploaded_media = upload(thread_video)
+            thread.thread_video = uploaded_media['url']
+            thread.save()          
 
         return thread
 
@@ -97,7 +103,7 @@ class ThreadWithCommentSerializer(ThreadSerializer):
 
     class Meta:
         model = Thread
-        fields = ['id', 'content', 'thread_media', 'author', 'username', 'created', 'likes', 'comments_count',
+        fields = ['id', 'content', 'thread_media', 'thread_video','author', 'username', 'created', 'likes', 'comments_count',
                   'comments', 'profile_picture']
 
 
