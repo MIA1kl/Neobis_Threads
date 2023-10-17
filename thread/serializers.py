@@ -11,10 +11,12 @@ class CommentSerializer(serializers.ModelSerializer):
     likes = serializers.SerializerMethodField()
     thread_content = serializers.SerializerMethodField()  
     mentions = serializers.SerializerMethodField()
+    profile_picture = serializers.URLField(source='author.profile_picture', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies', 'thread_content', 'mentions']  
+        fields = ['id', 'user', 'content', 'created', 'likes', 'parent', 'replies', 'thread_content', 'mentions',
+                  'profile_picture']
 
     def get_replies(self, comment):
         replies = Comment.objects.filter(parent=comment)
